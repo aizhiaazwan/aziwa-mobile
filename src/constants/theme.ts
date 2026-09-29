@@ -1,8 +1,7 @@
-// Warna diambil dari screenshot Stitch. Jika ada yang kurang pas,
-// cukup ubah di sini dan seluruh aplikasi ikut berubah.
 export const colors = {
   primary: "#5B3DE0",
   primarySoft: "#EFEBFF",
+  primaryField: "#F3F1FF",
   primaryMuted: "#B49BFF",
 
   background: "#FAF9FF",
@@ -11,6 +10,7 @@ export const colors = {
 
   text: "#1B1B3A",
   textMuted: "#6B6B85",
+  textPlaceholder: "#B4B2C9",
   textOnPrimary: "#FFFFFF",
 
   accent: "#FFC857",
@@ -25,10 +25,11 @@ export const colors = {
 } as const;
 
 export const fonts = {
-  regular: "Poppins_400Regular",
-  medium: "Poppins_500Medium",
-  semibold: "Poppins_600SemiBold",
-  bold: "Poppins_700Bold",
+  regular: "PlusJakartaSans_400Regular",
+  medium: "PlusJakartaSans_500Medium",
+  semibold: "PlusJakartaSans_600SemiBold",
+  bold: "PlusJakartaSans_700Bold",
+  extrabold: "PlusJakartaSans_800ExtraBold",
 } as const;
 
 export const spacing = {
@@ -45,5 +46,24 @@ export const radius = {
   md: 12,
   lg: 16,
   xl: 24,
+  xxl: 28,
   pill: 999,
+} as const;
+
+// Bayangan lembut, sengaja tipis agar tidak ramai
+export const shadow = {
+  card: {
+    shadowColor: "#3B2A8F",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  primary: {
+    shadowColor: "#5B3DE0",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.28,
+    shadowRadius: 12,
+    elevation: 6,
+  },
 } as const;
