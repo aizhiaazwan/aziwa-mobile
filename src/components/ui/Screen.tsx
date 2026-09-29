@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, spacing } from "@/constants/theme";
 import { FadeInView } from "./FadeInView";
 import { Fab } from "./Fab";
+import { useRouter } from "expo-router";
 
 type Props = {
   overlay?: ReactNode;
@@ -22,6 +23,7 @@ export function Screen({
   onFabPress,
   overlay,
 }: Props) {
+      const router = useRouter();
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       {header}
@@ -36,7 +38,7 @@ export function Screen({
       ) : (
         <FadeInView style={[styles.inner, styles.fill]}>{children}</FadeInView>
       )}
-      {fab && <Fab onPress={onFabPress} />}
+            {fab && <Fab onPress={onFabPress ?? (() => router.push('/add-task'))} />}
         {overlay}
     </SafeAreaView>
   );

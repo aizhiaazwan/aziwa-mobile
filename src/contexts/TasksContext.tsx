@@ -13,9 +13,11 @@ type TasksContextValue = {
   toggleComplete: (id: number) => void;
   setStatus: (id: number, status: Status) => void;
   removeTask: (id: number) => void;
+  addTask: (input: NewTask) => void;
 };
 
 const TasksContext = createContext<TasksContextValue | null>(null);
+export type NewTask = Omit<Task, 'id'>;
 
 // Sementara data dummy di memori. Di Phase 4 isinya diganti panggilan API,
 // sedangkan layar tidak perlu diubah.
@@ -41,10 +43,18 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const value = useMemo(
-    () => ({ tasks, toggleComplete, setStatus, removeTask }),
-    [tasks, toggleComplete, setStatus, removeTask],
-  );
+  const addTask = useCallback((input: NewTask) => {
+    const newTask: Task = {
+      ...input,
+      id: Date.now(), // Sementara menggunakan timestamp sebagai ID unik
+    };
+    setTasks((prev) => [...prev, newTask]);
+  }, []);
+
+    const value = useMemo(
+      () => ({ tasks, toggleComplete, setStatus, removeTask, addTask }),
+      [tasks, toggleComplete, setStatus, removeTask, addTask],
+    );
 
   return (
     <TasksContext.Provider value={value}>{children}</TasksContext.Provider>

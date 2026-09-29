@@ -33,13 +33,15 @@ export default function RootLayout() {
     return (
       <TasksProvider>
         <StatusBar style="dark" />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            animation: "fade",
-            contentStyle: { backgroundColor: colors.background },
-          }}
-        />
+              <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'fade',
+          contentStyle: { backgroundColor: colors.background },
+        }}
+      >
+        <Stack.Screen name="add-task" options={{ animation: 'slide_from_bottom' }} />
+      </Stack>
       </TasksProvider>
     );
 }
