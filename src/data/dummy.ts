@@ -18,6 +18,9 @@ export type Task = {
   deadline: string; // ISO dengan zona WIB (+07:00)
   priority: Priority;
   status: Status;
+  subtasks?: { done: number; total: number };
+  reminder?: string;
+  completedAt?: string;
 };
 
 export const dummyUser = { name: "Aizhia Azwan", firstName: "Aizhia" };
@@ -46,6 +49,8 @@ export const dummyTasks: Task[] = [
     deadline: "2026-09-30T23:59:00+07:00",
     priority: "high",
     status: "pending",
+    subtasks: { done: 2, total: 4 },
+    reminder: "08:00 WIB",
   },
   {
     id: 2,
@@ -54,6 +59,7 @@ export const dummyTasks: Task[] = [
     deadline: "2026-10-02T17:00:00+07:00",
     priority: "medium",
     status: "in_progress",
+    reminder: "H-1 Reminder",
   },
   {
     id: 3,
@@ -71,7 +77,15 @@ export const dummyTasks: Task[] = [
     priority: "medium",
     status: "pending",
   },
+  {
+    id: 5,
+    title: "Perancangan Diagram UML & Use Case",
+    courseId: 5,
+    deadline: "2026-09-27T23:59:00+07:00",
+    priority: "low",
+    status: "completed",
+    completedAt: "2026-09-25T10:00:00+07:00",
+  },
 ];
 
-// Angka statis sesuai desain. Nanti dihitung dari API.
 export const dummyStats = { total: 12, pending: 4, progress: 5, done: 3 };

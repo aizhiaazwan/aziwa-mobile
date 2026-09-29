@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
+import { TasksProvider } from "@/contexts/TasksContext";
 import {
   useFonts,
   PlusJakartaSans_400Regular,
@@ -29,16 +30,16 @@ export default function RootLayout() {
 
   if (!loaded && !error) return null;
 
-  return (
-    <>
-      <StatusBar style="dark" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: "fade",
-          contentStyle: { backgroundColor: colors.background },
-        }}
-      />
-    </>
-  );
+    return (
+      <TasksProvider>
+        <StatusBar style="dark" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: "fade",
+            contentStyle: { backgroundColor: colors.background },
+          }}
+        />
+      </TasksProvider>
+    );
 }

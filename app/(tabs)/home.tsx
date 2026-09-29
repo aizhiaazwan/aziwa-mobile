@@ -13,13 +13,8 @@ import { StatsRow } from "@/components/home/StatsRow";
 import { TipCard } from "@/components/home/TipCard";
 import { TaskRowCard } from "@/components/tasks/TaskRowCard";
 import { colors, fonts } from "@/constants/theme";
-import {
-  NOW,
-  dummyCourses,
-  dummyStats,
-  dummyTasks,
-  dummyUser,
-} from "@/data/dummy";
+import { NOW, dummyCourses, dummyStats, dummyUser } from "@/data/dummy";
+import { useTasks } from "@/contexts/TasksContext";
 import {
   daysLeft,
   formatTime,
@@ -32,7 +27,7 @@ type Filter = "all" | "today" | "week" | "priority";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [tasks, setTasks] = useState(dummyTasks);
+ const { tasks, toggleComplete } = useTasks();
   const [filter, setFilter] = useState<Filter>("all");
 
   const active = useMemo(
@@ -57,9 +52,7 @@ export default function HomeScreen() {
   const nextCourse = next && dummyCourses.find((c) => c.id === next.courseId);
 
   const complete = (id: number) =>
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, status: "completed" } : t)),
-    );
+    toggleComplete(id);
 
   return (
     <Screen header={<AppHeader title="Dashboard" />} fab>

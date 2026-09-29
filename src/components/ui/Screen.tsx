@@ -6,6 +6,7 @@ import { FadeInView } from "./FadeInView";
 import { Fab } from "./Fab";
 
 type Props = {
+  overlay?: ReactNode;
   children: ReactNode;
   header?: ReactNode;
   scroll?: boolean;
@@ -19,6 +20,7 @@ export function Screen({
   scroll = true,
   fab = false,
   onFabPress,
+  overlay,
 }: Props) {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -35,6 +37,7 @@ export function Screen({
         <FadeInView style={[styles.inner, styles.fill]}>{children}</FadeInView>
       )}
       {fab && <Fab onPress={onFabPress} />}
+        {overlay}
     </SafeAreaView>
   );
 }
