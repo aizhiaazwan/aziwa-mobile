@@ -3,6 +3,8 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { TasksProvider } from "@/contexts/TasksContext";
+import { CoursesProvider } from "@/contexts/CoursesContext";
+import { ProfileProvider } from "@/contexts/ProfileContext";
 import {
   useFonts,
   PlusJakartaSans_400Regular,
@@ -30,18 +32,33 @@ export default function RootLayout() {
 
   if (!loaded && !error) return null;
 
-    return (
-      <TasksProvider>
-        <StatusBar style="dark" />
+      return (
+        <ProfileProvider>
+          <CoursesProvider>
+            <TasksProvider>
+              <StatusBar style="dark" />
               <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: 'fade',
-          contentStyle: { backgroundColor: colors.background },
-        }}
-      >
-        <Stack.Screen name="add-task" options={{ animation: 'slide_from_bottom' }} />
-      </Stack>
-      </TasksProvider>
-    );
+                screenOptions={{
+                  headerShown: false,
+                  animation: "fade",
+                  contentStyle: { backgroundColor: colors.background },
+                }}
+              >
+                <Stack.Screen
+                  name="add-task"
+                  options={{ animation: "slide_from_bottom" }}
+                />
+                <Stack.Screen
+                  name="add-course"
+                  options={{ animation: "slide_from_bottom" }}
+                />
+                <Stack.Screen
+                  name="edit-profile"
+                  options={{ animation: "slide_from_bottom" }}
+                />
+              </Stack>
+            </TasksProvider>
+          </CoursesProvider>
+        </ProfileProvider>
+      );
 }

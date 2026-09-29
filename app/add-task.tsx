@@ -26,7 +26,8 @@ import {
 } from "@/components/tasks/ReminderOptions";
 import { useTasks } from "@/contexts/TasksContext";
 import { colors, fonts, radius, shadow } from "@/constants/theme";
-import { NOW, Priority, Status, dummyCourses } from "@/data/dummy";
+   import { NOW, Priority, Status } from "@/data/dummy";
+      import { useCourses } from "@/contexts/CoursesContext";
 
 const MONTHS = [
   "Jan",
@@ -61,7 +62,7 @@ const reminderText: Record<ReminderKey, string> = {
 export default function AddTaskScreen() {
   const router = useRouter();
   const { addTask } = useTasks();
-
+     const { courses } = useCourses();
   const [title, setTitle] = useState("");
   const [courseId, setCourseId] = useState<number | null>(null);
   const [description, setDescription] = useState("");
@@ -79,13 +80,13 @@ export default function AddTaskScreen() {
   const [toast, setToast] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const courseItems: SheetItem[] = dummyCourses.map((c) => ({
+  const courseItems: SheetItem[] = courses.map((c) => ({
     key: String(c.id),
     label: c.name,
     icon: c.icon,
     selected: courseId === c.id,
   }));
-  const courseName = dummyCourses.find((c) => c.id === courseId)?.name;
+  const courseName = courses.find((c) => c.id === courseId)?.name;
 
   const toggleReminder = (k: ReminderKey) =>
     setReminders((prev) =>

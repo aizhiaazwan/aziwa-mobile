@@ -13,7 +13,9 @@ import { StatsRow } from "@/components/home/StatsRow";
 import { TipCard } from "@/components/home/TipCard";
 import { TaskRowCard } from "@/components/tasks/TaskRowCard";
 import { colors, fonts } from "@/constants/theme";
-import { NOW, dummyCourses, dummyStats, dummyUser } from "@/data/dummy";
+import { NOW, dummyStats } from "@/data/dummy";
+import { useCourses } from '@/contexts/CoursesContext';
+import { useProfile } from '@/contexts/ProfileContext';
 import { useTasks } from "@/contexts/TasksContext";
 import {
   daysLeft,
@@ -28,6 +30,8 @@ type Filter = "all" | "today" | "week" | "priority";
 export default function HomeScreen() {
   const router = useRouter();
  const { tasks, toggleComplete } = useTasks();
+    const { courses } = useCourses();
+    const { profile } = useProfile();
   const [filter, setFilter] = useState<Filter>("all");
 
   const active = useMemo(
@@ -49,7 +53,7 @@ export default function HomeScreen() {
   }, [active, filter]);
 
   const next = active[0];
-  const nextCourse = next && dummyCourses.find((c) => c.id === next.courseId);
+  const nextCourse = next && courses.find((c) => c.id === next.courseId);
 
   const complete = (id: number) =>
     toggleComplete(id);
@@ -59,7 +63,7 @@ export default function HomeScreen() {
       <View style={{ gap: 20 }}>
         <FadeInView>
           <GreetingCard
-            name={dummyUser.firstName}
+            name={profile.name.split(" ")[0]}
             semester="Semester Ganjil 2026/2027"
           />
         </FadeInView>
@@ -151,7 +155,7 @@ export default function HomeScreen() {
               <TaskRowCard
                 key={t.id}
                 task={t}
-                course={dummyCourses.find((c) => c.id === t.courseId)!}
+                course={courses.find((c) => c.id === t.courseId)!}
                 urgent={daysLeft(t.deadline, NOW) <= 1}
                 onComplete={complete}
               />

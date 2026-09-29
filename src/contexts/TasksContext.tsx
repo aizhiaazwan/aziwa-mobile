@@ -14,6 +14,7 @@ type TasksContextValue = {
   setStatus: (id: number, status: Status) => void;
   removeTask: (id: number) => void;
   addTask: (input: NewTask) => void;
+  removeByCourse: (courseId: number) => void;
 };
 
 const TasksContext = createContext<TasksContextValue | null>(null);
@@ -51,10 +52,21 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     setTasks((prev) => [...prev, newTask]);
   }, []);
 
-    const value = useMemo(
-      () => ({ tasks, toggleComplete, setStatus, removeTask, addTask }),
-      [tasks, toggleComplete, setStatus, removeTask, addTask],
-    );
+    const removeByCourse = useCallback((courseId: number) => {
+    setTasks((prev) => prev.filter((t) => t.courseId !== courseId));
+  }, []);
+
+      const value = useMemo(
+        () => ({
+          tasks,
+          toggleComplete,
+          setStatus,
+          removeTask,
+          addTask,
+          removeByCourse,
+        }),
+        [tasks, toggleComplete, setStatus, removeTask, addTask, removeByCourse],
+      );
 
   return (
     <TasksContext.Provider value={value}>{children}</TasksContext.Provider>

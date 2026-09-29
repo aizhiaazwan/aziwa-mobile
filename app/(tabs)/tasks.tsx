@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
 import { Screen } from "@/components/ui/Screen";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { AppText } from "@/components/ui/AppText";
@@ -16,10 +17,11 @@ import { SheetMenu, SheetItem } from "@/components/ui/SheetMenu";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Toast } from "@/components/ui/Toast";
 import { TaskListCard } from "@/components/tasks/TaskListCard";
-import { useTasks } from "@/contexts/TasksContext";
+import { useCourses } from "@/contexts/CoursesContext";
 import { colors, fonts, radius, shadow } from "@/constants/theme";
-import { NOW, dummyCourses, Priority, Status, Task } from "@/data/dummy";
+import { NOW, Priority, Status, Task } from "@/data/dummy";
 import { daysLeft, isSameDay } from "@/utils/date";
+import { useTasks } from "@/contexts/TasksContext";
 
 type StatusFilter = "all" | Status;
 type DeadlineFilter = "all" | "today" | "week" | "overdue";
@@ -53,6 +55,8 @@ function buildTaskItems(task?: Task): SheetItem[] {
 }
 
 export default function TasksScreen() {
+  const { courses } = useCourses();
+  const params = useLocalSearchParams<{ courseId?: string; t?: string }>();
   const { tasks, toggleComplete, setStatus, removeTask } = useTasks();
 
   const [query, setQuery] = useState("");
@@ -67,6 +71,14 @@ export default function TasksScreen() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [removingId, setRemovingId] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  // Menerima filter matkul dari layar Mata Kuliah
+  useEffect(() => {
+    if (params.courseId) {
+      setCourseId(Number(params.courseId));
+      setStatusFilter("all");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.t]);
 
   const counts = useMemo(
     () => ({
@@ -81,7 +93,7 @@ export default function TasksScreen() {
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = tasks.filter((t) => {
-      const course = dummyCourses.find((c) => c.id === t.courseId);
+      const course = courses.find((c) => c.id === t.courseId);
       if (statusFilter !== "all" && t.status !== statusFilter) return false;
       if (courseId !== null && t.courseId !== courseId) return false;
       if (priority !== "all" && t.priority !== priority) return false;
@@ -115,7 +127,7 @@ export default function TasksScreen() {
       if (sort === "newest") return b.id - a.id; // id terbesar = terbaru (sementara)
       return +new Date(a.deadline) - +new Date(b.deadline);
     });
-  }, [tasks, query, statusFilter, courseId, priority, deadline, sort]);
+  }, [tasks, courses, query, statusFilter, courseId, priority, deadline, sort]);
 
   const filterActive = priority !== "all" || deadline !== "all";
   const anyFilter =
@@ -134,7 +146,7 @@ export default function TasksScreen() {
   const courseName =
     courseId === null
       ? "Semua Matkul"
-      : dummyCourses.find((c) => c.id === courseId)?.name;
+      : courses.find((c) => c.id === courseId)?.name;
 
   // ----- isi sheet -----
   const courseItems: SheetItem[] = [
@@ -144,7 +156,7 @@ export default function TasksScreen() {
       icon: "layers",
       selected: courseId === null,
     },
-    ...dummyCourses.map((c) => ({
+    ...courses.map((c) => ({
       key: String(c.id),
       label: c.name,
       icon: c.icon,
@@ -509,7 +521,7 @@ export default function TasksScreen() {
             <FadeInView key={t.id} delay={Math.min(i, 6) * 60 + 240}>
               <TaskListCard
                 task={t}
-                course={dummyCourses.find((c) => c.id === t.courseId)!}
+                course={courses.find((c) => c.id === t.courseId)!}
                 urgent={daysLeft(t.deadline, NOW) <= 1}
                 removing={removingId === t.id}
                 onToggle={handleToggle}

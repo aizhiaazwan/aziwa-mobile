@@ -2,8 +2,10 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { AppText } from "./AppText";
 import { colors, radius, spacing } from "@/constants/theme";
+   import { useProfile } from "@/contexts/ProfileContext";
 
 export function AppHeader({ title }: { title: string }) {
+       const { profile } = useProfile();
   return (
     <View style={styles.bar}>
       <View style={styles.row}>
@@ -27,7 +29,7 @@ export function AppHeader({ title }: { title: string }) {
 
         <View style={styles.avatar}>
           <AppText variant="label" color={colors.primary}>
-            A
+            {profile.name.charAt(0).toUpperCase()}
           </AppText>
         </View>
       </View>
