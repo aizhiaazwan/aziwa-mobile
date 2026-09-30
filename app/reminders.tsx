@@ -17,6 +17,7 @@ import { useAgendas } from "@/contexts/AgendaContext";
 import { colors, fonts, radius } from "@/constants/theme";
 import { NOW } from "@/data/dummy";
 import { resolveTarget, triggerIso } from "@/utils/reminder";
+import { CardGrid } from "@/components/layout/CardGrid";
 
 type Filter = "all" | "on" | "off";
 
@@ -183,25 +184,27 @@ export default function RemindersScreen() {
             )}
           </FadeInView>
         ) : (
-          visible.map((x, i) => (
-            <FadeInView key={x.r.id} delay={Math.min(i, 6) * 60 + 120}>
-              <ReminderCard
-                reminder={x.r}
-                target={x.target}
-                trigger={x.trigger}
-                past={x.past}
-                removing={removingId === x.r.id}
-                onToggle={handleToggle}
-                onPress={edit}
-                onMore={setMenuId}
-                onRemoved={(id) => {
-                  removeReminder(id);
-                  setRemovingId(null);
-                  setToast("Pengingat dihapus");
-                }}
-              />
-            </FadeInView>
-          ))
+          <CardGrid>
+            {visible.map((x, i) => (
+              <FadeInView key={x.r.id} delay={Math.min(i, 6) * 60 + 120}>
+                <ReminderCard
+                  reminder={x.r}
+                  target={x.target}
+                  trigger={x.trigger}
+                  past={x.past}
+                  removing={removingId === x.r.id}
+                  onToggle={handleToggle}
+                  onPress={edit}
+                  onMore={setMenuId}
+                  onRemoved={(id) => {
+                    removeReminder(id);
+                    setRemovingId(null);
+                    setToast("Pengingat dihapus");
+                  }}
+                />
+              </FadeInView>
+            ))}
+          </CardGrid>
         )}
       </View>
     </Screen>

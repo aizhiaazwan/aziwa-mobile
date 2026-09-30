@@ -1,20 +1,13 @@
 import { ReactNode, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { colors, spacing } from "@/constants/theme";
+import { addItems } from "@/constants/addMenu";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { FadeInView } from "./FadeInView";
 import { Fab } from "./Fab";
-import { SheetMenu, SheetItem } from "./SheetMenu";
-
-// key = alamat route tujuan
-const addItems: SheetItem[] = [
-  { key: "/add-task", label: "Tugas Kuliah", icon: "check-circle" },
-  { key: "/add-agenda", label: "Agenda", icon: "calendar" },
-  { key: "/add-todo", label: "To-Do", icon: "list" },
-  { key: '/add-note', label: 'Catatan', icon: 'file-text' },
-  { key: '/add-reminder', label: 'Pengingat', icon: 'bell' },
-];
+import { SheetMenu } from "./SheetMenu";
 
 type Props = {
   children: ReactNode;
@@ -34,6 +27,7 @@ export function Screen({
   overlay,
 }: Props) {
   const router = useRouter();
+  const { isDesktop, contentMax } = useBreakpoint();
   const [addMenu, setAddMenu] = useState(false);
 
   return (
@@ -41,16 +35,28 @@ export function Screen({
       {header}
       {scroll ? (
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            isDesktop && styles.scrollDesktop,
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <FadeInView style={styles.inner}>{children}</FadeInView>
+          <FadeInView style={[styles.inner, { maxWidth: contentMax }]}>
+            {children}
+          </FadeInView>
         </ScrollView>
       ) : (
-        <FadeInView style={[styles.inner, styles.fill]}>{children}</FadeInView>
+        <FadeInView
+          style={[styles.inner, styles.fill, { maxWidth: contentMax }]}
+        >
+          {children}
+        </FadeInView>
       )}
-      {fab && <Fab onPress={onFabPress ?? (() => setAddMenu(true))} />}
+      {/* Di desktop, tombol Tambah Baru ada di sidebar */}
+      {fab && !isDesktop && (
+        <Fab onPress={onFabPress ?? (() => setAddMenu(true))} />
+      )}
       {overlay}
       <SheetMenu
         visible={addMenu}
@@ -69,6 +75,7 @@ export function Screen({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   scrollContent: { flexGrow: 1, padding: spacing.lg, paddingBottom: 100 },
-  inner: { width: "100%", maxWidth: 720, alignSelf: "center" },
+  scrollDesktop: { padding: spacing.xl, paddingBottom: 48 },
+  inner: { width: "100%", alignSelf: "center" },
   fill: { flex: 1, padding: spacing.lg },
 });

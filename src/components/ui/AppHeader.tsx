@@ -2,13 +2,26 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { AppText } from "./AppText";
 import { colors, radius, spacing } from "@/constants/theme";
-   import { useProfile } from "@/contexts/ProfileContext";
+import { useProfile } from "@/contexts/ProfileContext";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 
 export function AppHeader({ title }: { title: string }) {
        const { profile } = useProfile();
+        const { isDesktop, contentMax } = useBreakpoint();
+           {
+             !isDesktop && (
+               <View style={styles.logoBox}>
+                 <Ionicons
+                   name="school-outline"
+                   size={22}
+                   color={colors.primary}
+                 />
+               </View>
+             );
+           }
   return (
     <View style={styles.bar}>
-      <View style={styles.row}>
+      <View style={[styles.row, { maxWidth: contentMax }]}>
         <View style={styles.logoBox}>
           <Ionicons name="school-outline" size={22} color={colors.primary} />
         </View>

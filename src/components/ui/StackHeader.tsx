@@ -5,6 +5,7 @@ import { Feather } from "@expo/vector-icons";
 import { AppText } from "./AppText";
 import { colors, radius, spacing } from "@/constants/theme";
 import type { IconName } from "@/data/dummy";
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 export function StackHeader({
   title,
@@ -13,13 +14,14 @@ export function StackHeader({
   title: string;
   right?: ReactNode;
 }) {
+  const { contentMax } = useBreakpoint();
   const router = useRouter();
   const back = () =>
     router.canGoBack() ? router.back() : router.replace("/home");
 
   return (
     <View style={styles.bar}>
-      <View style={styles.row}>
+      <View style={[styles.row, { maxWidth: contentMax }]}>
         <Pressable
           onPress={back}
           hitSlop={10}

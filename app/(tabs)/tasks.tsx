@@ -22,6 +22,7 @@ import { colors, fonts, radius, shadow } from "@/constants/theme";
 import { NOW, Priority, Status, Task } from "@/data/dummy";
 import { daysLeft, isSameDay } from "@/utils/date";
 import { useTasks } from "@/contexts/TasksContext";
+import { CardGrid } from "@/components/layout/CardGrid";
 
 type StatusFilter = "all" | Status;
 type DeadlineFilter = "all" | "today" | "week" | "overdue";
@@ -517,7 +518,8 @@ export default function TasksScreen() {
             )}
           </FadeInView>
         ) : (
-          visible.map((t, i) => (
+          <CardGrid>
+           {visible.map((t, i) => (
             <FadeInView key={t.id} delay={Math.min(i, 6) * 60 + 240}>
               <TaskListCard
                 task={t}
@@ -529,7 +531,8 @@ export default function TasksScreen() {
                 onRemoved={handleRemoved}
               />
             </FadeInView>
-          ))
+          ))}
+          </CardGrid>
         )}
       </View>
     </Screen>

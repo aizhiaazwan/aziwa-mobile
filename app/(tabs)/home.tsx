@@ -25,14 +25,17 @@ import {
   monthYearLabel,
 } from "@/utils/date";
 import { QuickLinks } from "@/components/home/QuickLinks";
+import { CardGrid } from "@/components/layout/CardGrid";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 
 type Filter = "all" | "today" | "week" | "priority";
 
 export default function HomeScreen() {
   const router = useRouter();
- const { tasks, toggleComplete } = useTasks();
-    const { courses } = useCourses();
-    const { profile } = useProfile();
+  const { isDesktop } = useBreakpoint();
+  const { tasks, toggleComplete } = useTasks();
+  const { courses } = useCourses();
+  const { profile } = useProfile();
   const [filter, setFilter] = useState<Filter>("all");
 
   const active = useMemo(
@@ -61,17 +64,16 @@ export default function HomeScreen() {
 
   return (
     <Screen header={<AppHeader title="Dashboard" />} fab>
-      <View style={{ gap: 20 }}>
-        <FadeInView>
-          <GreetingCard
+      <View style={isDesktop ? { flexDirection: 'row', gap: 20 } : { gap: 20 }}>
+          <FadeInView style={isDesktop ? { flex: 1 } : undefined}>
+            <GreetingCard 
             name={profile.name.split(" ")[0]}
-            semester="Semester Ganjil 2026/2027"
-          />
-        </FadeInView>
-
-        {next && nextCourse && (
-          <FadeInView delay={80}>
-            <DeadlineBanner
+            semester="Semester Ganjil 2026/2027"/>
+          </FadeInView>
+          
+          {next && nextCourse && (
+            <FadeInView delay={80} style={isDesktop ? { flex: 1, justifyContent: 'center' } : undefined}>
+              <DeadlineBanner
               label={
                 isSameDay(next.deadline, NOW)
                   ? "DEADLINE HARI INI"
@@ -81,9 +83,9 @@ export default function HomeScreen() {
               title={`${nextCourse.name} — ${next.title}`}
               note={`Tersisa ${hoursLeft(next.deadline, NOW)} jam lagi untuk submit ke portal LMS.`}
             />
-          </FadeInView>
-        )}
-
+            </FadeInView>
+          )}
+          
         <FadeInView delay={160} style={{ gap: 12 }}>
           <View style={styles.between}>
             <AppText style={styles.section}>Ringkasan Tugas</AppText>
@@ -155,8 +157,8 @@ export default function HomeScreen() {
                 Tidak ada tugas untuk filter ini.
               </AppText>
             </View>
-          ) : (
-            visible.map((t) => (
+          ) : (<CardGrid>
+            {visible.map((t) => (
               <TaskRowCard
                 key={t.id}
                 task={t}
@@ -164,7 +166,8 @@ export default function HomeScreen() {
                 urgent={daysLeft(t.deadline, NOW) <= 1}
                 onComplete={complete}
               />
-            ))
+            ))}
+            </CardGrid>
           )}
         </FadeInView>
 

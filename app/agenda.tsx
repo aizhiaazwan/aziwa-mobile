@@ -21,6 +21,7 @@ import {
   formatKeyLong,
   keyParts,
 } from "@/utils/date";
+import { CardGrid } from "@/components/layout/CardGrid";
 
 type Mode = "day" | "upcoming";
 
@@ -237,11 +238,13 @@ export default function AgendaScreen() {
                   </Pressable>
                 </View>
               ) : (
-                dayList.map((a, i) => (
-                  <FadeInView key={a.id} delay={Math.min(i, 6) * 60}>
-                    {card(a)}
-                  </FadeInView>
-                ))
+                <CardGrid>
+                  {dayList.map((a, i) => (
+                    <FadeInView key={a.id} delay={Math.min(i, 6) * 60}>
+                      {card(a)}
+                    </FadeInView>
+                  ))}
+                </CardGrid>
               )}
             </FadeInView>
           </>
@@ -260,7 +263,7 @@ export default function AgendaScreen() {
               style={{ gap: 10 }}
             >
               <AppText style={styles.section}>{groupLabel(g.date)}</AppText>
-              {g.items.map(card)}
+              <CardGrid>{g.items.map(card)}</CardGrid>
             </FadeInView>
           ))
         )}

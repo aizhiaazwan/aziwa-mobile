@@ -17,6 +17,8 @@ import { useTasks } from "@/contexts/TasksContext";
 import { colors, fonts, radius } from "@/constants/theme";
 import { NOW } from "@/data/dummy";
 import { daysLeft, weekdayWib } from "@/utils/date";
+import { CardGrid } from "@/components/layout/CardGrid";
+import { SearchBox } from "@/components/ui/SearchBox";
 
 type Filter = "all" | "urgent" | "today";
 
@@ -27,6 +29,7 @@ export default function CoursesScreen() {
   const { profile } = useProfile();
 
   const [filter, setFilter] = useState<Filter>("all");
+  const [query, setQuery] = useState("");
   const [menuId, setMenuId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [removingId, setRemovingId] = useState<number | null>(null);
@@ -59,15 +62,24 @@ export default function CoursesScreen() {
   );
   const totalSks = courses.reduce((n, c) => n + c.sks, 0);
 
-  const visible = useMemo(
-    () =>
-      courses.filter((c) => {
-        if (filter === "urgent") return (stats.get(c.id)?.urgent ?? 0) > 0;
-        if (filter === "today") return c.day === today;
+    const visible = useMemo(() => {
+      const q = query.trim().toLowerCase();
+      return courses.filter((c) => {
+        if (filter === "urgent" && !((stats.get(c.id)?.urgent ?? 0) > 0))
+          return false;
+        if (filter === "today" && c.day !== today) return false;
+        if (
+          q &&
+          !(
+            c.name.toLowerCase().includes(q) ||
+            c.code.toLowerCase().includes(q) ||
+            c.lecturer.toLowerCase().includes(q)
+          )
+        )
+          return false;
         return true;
-      }),
-    [courses, stats, filter, today],
-  );
+      });
+    }, [courses, stats, filter, today, query]);
 
   // Tips: matkul dengan deadline dekat terbanyak
   const tipCourse = useMemo(() => {
@@ -218,6 +230,13 @@ export default function CoursesScreen() {
         </FadeInView>
 
         {/* Filter */}
+        <FadeInView delay={110}>
+          <SearchBox
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Cari matkul, kode, atau dosen"
+          />
+        </FadeInView>
         <FadeInView delay={140}>
           <ScrollView
             horizontal
@@ -227,17 +246,20 @@ export default function CoursesScreen() {
             <Chip
               label={`Semua (${courses.length})`}
               selected={filter === "all"}
-              onPress={() => setFilter("all")}
+              onPress={() => {
+                setFilter("all");
+                setQuery("");
+              }}
             />
             <Chip
               label={`Tugas Mendesak (${urgentCount})`}
               selected={filter === "urgent"}
-              onPress={() => setFilter("urgent")}
+              onPress={() => { setFilter("urgent"); setQuery(''); }}
             />
             <Chip
               label={`Jadwal Hari Ini (${todayCount})`}
               selected={filter === "today"}
-              onPress={() => setFilter("today")}
+              onPress={() => { setFilter("today"); setQuery(''); }}
             />
           </ScrollView>
         </FadeInView>
@@ -262,18 +284,20 @@ export default function CoursesScreen() {
             )}
           </FadeInView>
         ) : (
-          visible.map((c, i) => (
-            <FadeInView key={c.id} delay={Math.min(i, 6) * 60 + 200}>
-              <CourseCard
-                course={c}
-                stats={stats.get(c.id) ?? { active: 0, urgent: 0, done: 0 }}
-                removing={removingId === c.id}
-                onOpenTasks={openTasks}
-                onMore={setMenuId}
-                onRemoved={handleRemoved}
-              />
-            </FadeInView>
-          ))
+          <CardGrid>
+            {visible.map((c, i) => (
+              <FadeInView key={c.id} delay={Math.min(i, 6) * 60 + 200}>
+                <CourseCard
+                  course={c}
+                  stats={stats.get(c.id) ?? { active: 0, urgent: 0, done: 0 }}
+                  removing={removingId === c.id}
+                  onOpenTasks={openTasks}
+                  onMore={setMenuId}
+                  onRemoved={handleRemoved}
+                />
+              </FadeInView>
+            ))}
+          </CardGrid>
         )}
 
         {/* Tips */}

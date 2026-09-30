@@ -16,6 +16,7 @@ import { useTodos } from "@/contexts/TodosContext";
 import { colors, fonts, radius, shadow } from "@/constants/theme";
 import { NOW, Priority } from "@/data/dummy";
 import { dateKey } from "@/utils/date";
+import { CardGrid } from "@/components/layout/CardGrid";
 
 type Filter = "all" | "active" | "done";
 const rank: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
@@ -211,23 +212,25 @@ export default function TodosScreen() {
             </AppText>
           </FadeInView>
         ) : (
-          visible.map((t, i) => (
-            <FadeInView key={t.id} delay={Math.min(i, 6) * 60 + 180}>
-              <TodoRow
-                todo={t}
-                todayKey={todayKey}
-                removing={removingId === t.id}
-                onToggle={toggleTodo}
-                onPress={edit}
-                onMore={setMenuId}
-                onRemoved={(id) => {
-                  removeTodo(id);
-                  setRemovingId(null);
-                  setToast("To-do dihapus");
-                }}
-              />
-            </FadeInView>
-          ))
+          <CardGrid>
+            {visible.map((t, i) => (
+              <FadeInView key={t.id} delay={Math.min(i, 6) * 60 + 180}>
+                <TodoRow
+                  todo={t}
+                  todayKey={todayKey}
+                  removing={removingId === t.id}
+                  onToggle={toggleTodo}
+                  onPress={edit}
+                  onMore={setMenuId}
+                  onRemoved={(id) => {
+                    removeTodo(id);
+                    setRemovingId(null);
+                    setToast("To-do dihapus");
+                  }}
+                />
+              </FadeInView>
+            ))}
+          </CardGrid>
         )}
       </View>
     </Screen>

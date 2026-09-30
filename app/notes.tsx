@@ -19,6 +19,7 @@ import { Toast } from "@/components/ui/Toast";
 import { NoteCard } from "@/components/notes/NoteCard";
 import { NoteTag, tagMeta, useNotes } from "@/contexts/NotesContext";
 import { colors, fonts, radius, shadow } from "@/constants/theme";
+import { CardGrid } from "@/components/layout/CardGrid";
 
 const tags = Object.keys(tagMeta) as NoteTag[];
 
@@ -171,21 +172,23 @@ export default function NotesScreen() {
             )}
           </FadeInView>
         ) : (
-          visible.map((n, i) => (
-            <FadeInView key={n.id} delay={Math.min(i, 6) * 60 + 120}>
-              <NoteCard
-                note={n}
-                removing={removingId === n.id}
-                onPress={edit}
-                onMore={setMenuId}
-                onRemoved={(id) => {
-                  removeNote(id);
-                  setRemovingId(null);
-                  setToast("Catatan dihapus");
-                }}
-              />
-            </FadeInView>
-          ))
+          <CardGrid>
+            {visible.map((n, i) => (
+              <FadeInView key={n.id} delay={Math.min(i, 6) * 60 + 120}>
+                <NoteCard
+                  note={n}
+                  removing={removingId === n.id}
+                  onPress={edit}
+                  onMore={setMenuId}
+                  onRemoved={(id) => {
+                    removeNote(id);
+                    setRemovingId(null);
+                    setToast("Catatan dihapus");
+                  }}
+                />
+              </FadeInView>
+            ))}
+          </CardGrid>
         )}
       </View>
     </Screen>
