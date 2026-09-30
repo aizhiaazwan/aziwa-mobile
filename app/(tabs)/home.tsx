@@ -7,16 +7,19 @@ import { AppHeader } from "@/components/ui/AppHeader";
 import { AppText } from "@/components/ui/AppText";
 import { Chip } from "@/components/ui/Chip";
 import { FadeInView } from "@/components/ui/FadeInView";
+import { CardGrid } from "@/components/layout/CardGrid";
 import { GreetingCard } from "@/components/home/GreetingCard";
 import { DeadlineBanner } from "@/components/home/DeadlineBanner";
 import { StatsRow } from "@/components/home/StatsRow";
+import { QuickLinks } from "@/components/home/QuickLinks";
 import { TipCard } from "@/components/home/TipCard";
 import { TaskRowCard } from "@/components/tasks/TaskRowCard";
+import { useTasks } from "@/contexts/TasksContext";
+import { useCourses } from "@/contexts/CoursesContext";
+import { useProfile } from "@/contexts/ProfileContext";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { colors, fonts } from "@/constants/theme";
 import { NOW, dummyStats } from "@/data/dummy";
-import { useCourses } from '@/contexts/CoursesContext';
-import { useProfile } from '@/contexts/ProfileContext';
-import { useTasks } from "@/contexts/TasksContext";
 import {
   daysLeft,
   formatTime,
@@ -24,9 +27,6 @@ import {
   isSameDay,
   monthYearLabel,
 } from "@/utils/date";
-import { QuickLinks } from "@/components/home/QuickLinks";
-import { CardGrid } from "@/components/layout/CardGrid";
-import { useBreakpoint } from "@/hooks/useBreakpoint";
 
 type Filter = "all" | "today" | "week" | "priority";
 
@@ -53,39 +53,44 @@ export default function HomeScreen() {
       if (filter === "priority") return t.priority === "high";
       return true;
     });
-    return list.slice(0, 3);
+    return list.slice(0, 4);
   }, [active, filter]);
 
   const next = active[0];
   const nextCourse = next && courses.find((c) => c.id === next.courseId);
 
-  const complete = (id: number) =>
-    toggleComplete(id);
-
   return (
     <Screen header={<AppHeader title="Dashboard" />} fab>
-      <View style={isDesktop ? { flexDirection: 'row', gap: 20 } : { gap: 20 }}>
-          <FadeInView style={isDesktop ? { flex: 1 } : undefined}>
-            <GreetingCard 
-            name={profile.name.split(" ")[0]}
-            semester="Semester Ganjil 2026/2027"/>
-          </FadeInView>
-          
-          {next && nextCourse && (
-            <FadeInView delay={80} style={isDesktop ? { flex: 1, justifyContent: 'center' } : undefined}>
-              <DeadlineBanner
-              label={
-                isSameDay(next.deadline, NOW)
-                  ? "DEADLINE HARI INI"
-                  : "DEADLINE BESOK"
-              }
-              time={formatTime(next.deadline)}
-              title={`${nextCourse.name} — ${next.title}`}
-              note={`Tersisa ${hoursLeft(next.deadline, NOW)} jam lagi untuk submit ke portal LMS.`}
+      {/* Pembungkus luar: SELALU kolom (vertikal) */}
+      <View style={{ gap: 20 }}>
+        {/* Hanya baris ini yang berubah jadi 2 kolom di desktop */}
+        <View style={isDesktop ? styles.topRowDesktop : styles.topRowMobile}>
+          <FadeInView style={isDesktop ? styles.half : undefined}>
+            <GreetingCard
+              name={profile.name.split(" ")[0]}
+              semester="Semester Ganjil 2026/2027"
             />
+          </FadeInView>
+
+          {next && nextCourse && (
+            <FadeInView
+              delay={80}
+              style={isDesktop ? [styles.half, styles.centerV] : undefined}
+            >
+              <DeadlineBanner
+                label={
+                  isSameDay(next.deadline, NOW)
+                    ? "DEADLINE HARI INI"
+                    : "DEADLINE BESOK"
+                }
+                time={formatTime(next.deadline)}
+                title={`${nextCourse.name} — ${next.title}`}
+                note={`Tersisa ${hoursLeft(next.deadline, NOW)} jam lagi untuk submit ke portal LMS.`}
+              />
             </FadeInView>
           )}
-          
+        </View>
+
         <FadeInView delay={160} style={{ gap: 12 }}>
           <View style={styles.between}>
             <AppText style={styles.section}>Ringkasan Tugas</AppText>
@@ -93,7 +98,7 @@ export default function HomeScreen() {
           </View>
           <StatsRow stats={dummyStats} />
         </FadeInView>
-        
+
         <FadeInView delay={200}>
           <QuickLinks />
         </FadeInView>
@@ -157,16 +162,17 @@ export default function HomeScreen() {
                 Tidak ada tugas untuk filter ini.
               </AppText>
             </View>
-          ) : (<CardGrid>
-            {visible.map((t) => (
-              <TaskRowCard
-                key={t.id}
-                task={t}
-                course={courses.find((c) => c.id === t.courseId)!}
-                urgent={daysLeft(t.deadline, NOW) <= 1}
-                onComplete={complete}
-              />
-            ))}
+          ) : (
+            <CardGrid>
+              {visible.map((t) => (
+                <TaskRowCard
+                  key={t.id}
+                  task={t}
+                  course={courses.find((c) => c.id === t.courseId)!}
+                  urgent={daysLeft(t.deadline, NOW) <= 1}
+                  onComplete={toggleComplete}
+                />
+              ))}
             </CardGrid>
           )}
         </FadeInView>
@@ -183,6 +189,10 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  topRowMobile: { gap: 20 },
+  topRowDesktop: { flexDirection: "row", gap: 20, alignItems: "stretch" },
+  half: { flex: 1 },
+  centerV: { justifyContent: "center" },
   between: {
     flexDirection: "row",
     justifyContent: "space-between",
