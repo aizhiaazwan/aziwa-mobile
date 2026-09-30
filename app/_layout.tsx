@@ -14,6 +14,8 @@ import {
   PlusJakartaSans_800ExtraBold,
 } from "@expo-google-fonts/plus-jakarta-sans";
 import { colors } from "@/constants/theme";
+import { AgendaProvider } from "@/contexts/AgendaContext";
+import { TodosProvider } from "@/contexts/TodosContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,33 +34,53 @@ export default function RootLayout() {
 
   if (!loaded && !error) return null;
 
-      return (
-        <ProfileProvider>
-          <CoursesProvider>
-            <TasksProvider>
-              <StatusBar style="dark" />
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  animation: "fade",
-                  contentStyle: { backgroundColor: colors.background },
-                }}
-              >
-                <Stack.Screen
-                  name="add-task"
-                  options={{ animation: "slide_from_bottom" }}
-                />
-                <Stack.Screen
-                  name="add-course"
-                  options={{ animation: "slide_from_bottom" }}
-                />
-                <Stack.Screen
-                  name="edit-profile"
-                  options={{ animation: "slide_from_bottom" }}
-                />
-              </Stack>
-            </TasksProvider>
-          </CoursesProvider>
-        </ProfileProvider>
-      );
+        return (
+          <ProfileProvider>
+            <CoursesProvider>
+              <TasksProvider>
+                <AgendaProvider>
+                  <TodosProvider>
+                    <StatusBar style="dark" />
+                    <Stack
+                      screenOptions={{
+                        headerShown: false,
+                        animation: "fade",
+                        contentStyle: { backgroundColor: colors.background },
+                      }}
+                    >
+                      <Stack.Screen
+                        name="add-task"
+                        options={{ animation: "slide_from_bottom" }}
+                      />
+                      <Stack.Screen
+                        name="add-course"
+                        options={{ animation: "slide_from_bottom" }}
+                      />
+                      <Stack.Screen
+                        name="edit-profile"
+                        options={{ animation: "slide_from_bottom" }}
+                      />
+                      <Stack.Screen
+                        name="add-agenda"
+                        options={{ animation: "slide_from_bottom" }}
+                      />
+                      <Stack.Screen
+                        name="add-todo"
+                        options={{ animation: "slide_from_bottom" }}
+                      />
+                      <Stack.Screen
+                        name="agenda"
+                        options={{ animation: "slide_from_right" }}
+                      />
+                      <Stack.Screen
+                        name="todos"
+                        options={{ animation: "slide_from_right" }}
+                      />
+                    </Stack>
+                  </TodosProvider>
+                </AgendaProvider>
+              </TasksProvider>
+            </CoursesProvider>
+          </ProfileProvider>
+        );
 }

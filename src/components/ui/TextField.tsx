@@ -5,55 +5,89 @@ import { AppText } from './AppText';
 import { colors, fonts, radius } from '@/constants/theme';
 
 type Props = TextInputProps & {
+  error?: string;
   label: string;
-  icon: React.ComponentProps<typeof Feather>['name'];
+  icon: React.ComponentProps<typeof Feather>["name"];
   password?: boolean;
 };
 
-export function TextField({ label, icon, password, style, ...rest }: Props) {
-  const [focused, setFocused] = useState(false);
-  const [hidden, setHidden] = useState(!!password);
+   export function TextField({
+     label,
+     icon,
+     password,
+     error,
+     style,
+     ...rest
+   }: Props) {
+     const [focused, setFocused] = useState(false);
+     const [hidden, setHidden] = useState(!!password);
 
-  return (
-    <View style={{ gap: 8 }}>
-      <AppText variant="subheading" style={{ fontSize: 14, lineHeight: 20 }}>
-        {label}
-      </AppText>
-      <View style={[styles.field, focused && styles.focused]}>
-        <Feather name={icon} size={20} color={colors.textMuted} />
-        <TextInput
-          {...rest}
-          secureTextEntry={hidden}
-          placeholderTextColor={colors.textPlaceholder}
-          onFocus={(e) => {
-            setFocused(true);
-            rest.onFocus?.(e);
-          }}
-          onBlur={(e) => {
-            setFocused(false);
-            rest.onBlur?.(e);
-          }}
-          style={[styles.input, style]}
-        />
-        {password && (
-          <Pressable onPress={() => setHidden((h) => !h)} hitSlop={10} accessibilityLabel="Tampilkan sandi">
-            <Feather name={hidden ? 'eye' : 'eye-off'} size={20} color={colors.textMuted} />
-          </Pressable>
-        )}
-      </View>
-    </View>
-  );
-}
+     return (
+       <View style={{ gap: 8 }}>
+         <AppText variant="subheading" style={{ fontSize: 14, lineHeight: 20 }}>
+           {label}
+         </AppText>
+         <View
+           style={[
+             styles.field,
+             focused && styles.focused,
+             !!error && styles.errorBorder,
+           ]}
+         >
+           <Feather name={icon} size={20} color={colors.textMuted} />
+           <TextInput
+             {...rest}
+             secureTextEntry={hidden}
+             placeholderTextColor={colors.textPlaceholder}
+             onFocus={(e) => {
+               setFocused(true);
+               rest.onFocus?.(e);
+             }}
+             onBlur={(e) => {
+               setFocused(false);
+               rest.onBlur?.(e);
+             }}
+             style={[styles.input, style]}
+           />
+           {password && (
+             <Pressable
+               onPress={() => setHidden((h) => !h)}
+               hitSlop={10}
+               accessibilityLabel="Tampilkan sandi"
+             >
+               <Feather
+                 name={hidden ? "eye" : "eye-off"}
+                 size={20}
+                 color={colors.textMuted}
+               />
+             </Pressable>
+           )}
+         </View>
+         {error ? (
+           <AppText
+             style={{
+               fontFamily: fonts.medium,
+               fontSize: 13,
+               color: colors.danger,
+             }}
+           >
+             {error}
+           </AppText>
+         ) : null}
+       </View>
+     );
+   }
 
 const styles = StyleSheet.create({
+  errorBorder: { borderColor: colors.danger },
   field: {
     height: 54,
     borderRadius: radius.lg,
     backgroundColor: colors.primaryField,
     borderWidth: 1.5,
-    borderColor: 'transparent',
-    flexDirection: 'row',
-    alignItems: 'center',
+    borderColor: "transparent",
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     gap: 12,
   },
@@ -63,8 +97,8 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
     fontSize: 15,
     color: colors.text,
-    height: '100%',
+    height: "100%",
     // menghilangkan outline bawaan browser di web
-    outlineStyle: 'none',
+    outlineStyle: "none",
   } as any,
 });

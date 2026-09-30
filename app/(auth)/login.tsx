@@ -68,7 +68,7 @@ export default function LoginScreen() {
             </View>
             <AppText color={colors.textMuted}>Ingat saya</AppText>
           </Pressable>
-          <Pressable>
+          <Pressable onPress={() => router.push("/forgot")}>
             <AppText style={styles.link}>Lupa Kata Sandi?</AppText>
           </Pressable>
         </View>
@@ -96,7 +96,7 @@ export default function LoginScreen() {
       <FadeInView delay={300} style={styles.footer}>
         <AppText color={colors.textMuted}>
           Belum punya akun?{" "}
-          <AppText style={styles.link}>Daftar Sekarang</AppText>
+            <AppText style={styles.link} onPress={() => router.push('/register')}>Daftar Sekarang</AppText>
         </AppText>
         <View style={styles.secure}>
           <Feather name="shield" size={16} color={colors.primary} />

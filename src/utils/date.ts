@@ -91,3 +91,50 @@ export const DAY_NAMES = [
 export function weekdayWib(d: Date) {
   return new Date(d.getTime() + 7 * 3600 * 1000).getUTCDay();
 }
+
+// ---- Kunci tanggal 'YYYY-MM-DD' (WIB) ----
+export function dateKey(d: Date) {
+  return new Date(d.getTime() + 7 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+export function keyParts(key: string) {
+  const [y, m, d] = key.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return { y, m: m - 1, d, weekday: dt.getUTCDay() };
+}
+
+export function addDaysKey(key: string, n: number) {
+  const { y, m, d } = keyParts(key);
+  return new Date(Date.UTC(y, m, d + n)).toISOString().slice(0, 10);
+}
+
+export function formatKeyShort(key: string) {
+  const p = keyParts(key);
+  return `${p.d} ${MONTHS[p.m]}`;
+}
+
+export function formatKeyLong(key: string) {
+  const p = keyParts(key);
+  return `${DAY_NAMES[p.weekday]}, ${p.d} ${MONTHS[p.m]} ${p.y}`;
+}
+
+export function keyToYMD(key: string) {
+  const p = keyParts(key);
+  return { y: p.y, m: p.m, d: p.d };
+}
+
+export function ymdToKey(v: { y: number; m: number; d: number }) {
+  return `${v.y}-${String(v.m + 1).padStart(2, '0')}-${String(v.d).padStart(2, '0')}`;
+}
+
+// ---- Jam 'HH:MM' ----
+export function parseHM(s: string) {
+  const [hh, mm] = s.split(':').map(Number);
+  return { hh, mm };
+}
+
+export function formatHM(t: { hh: number; mm: number }) {
+  return `${String(t.hh).padStart(2, '0')}:${String(t.mm).padStart(2, '0')}`;
+}
+
+export const toMinutes = (t: { hh: number; mm: number }) => t.hh * 60 + t.mm;

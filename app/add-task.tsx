@@ -26,8 +26,8 @@ import {
 } from "@/components/tasks/ReminderOptions";
 import { useTasks } from "@/contexts/TasksContext";
 import { colors, fonts, radius, shadow } from "@/constants/theme";
-   import { NOW, Priority, Status } from "@/data/dummy";
-      import { useCourses } from "@/contexts/CoursesContext";
+import { NOW, Priority, Status } from "@/data/dummy";
+import { useCourses } from "@/contexts/CoursesContext";
 
 const MONTHS = [
   "Jan",
@@ -62,7 +62,7 @@ const reminderText: Record<ReminderKey, string> = {
 export default function AddTaskScreen() {
   const router = useRouter();
   const { addTask } = useTasks();
-     const { courses } = useCourses();
+  const { courses } = useCourses();
   const [title, setTitle] = useState("");
   const [courseId, setCourseId] = useState<number | null>(null);
   const [description, setDescription] = useState("");
@@ -72,14 +72,12 @@ export default function AddTaskScreen() {
   const [status, setStatus] = useState<Status>("pending");
   const [smart, setSmart] = useState(true);
   const [reminders, setReminders] = useState<ReminderKey[]>(["1d", "3h"]);
-
   const [sheet, setSheet] = useState<"course" | "date" | "time" | null>(null);
   const [errors, setErrors] = useState<{ title?: string; course?: string }>({});
   const [shakeKey, setShakeKey] = useState(0);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const courseItems: SheetItem[] = courses.map((c) => ({
     key: String(c.id),
     label: c.name,
@@ -87,12 +85,10 @@ export default function AddTaskScreen() {
     selected: courseId === c.id,
   }));
   const courseName = courses.find((c) => c.id === courseId)?.name;
-
   const toggleReminder = (k: ReminderKey) =>
     setReminders((prev) =>
       prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k],
     );
-
   const validate = () => {
     const e: { title?: string; course?: string } = {};
     if (!title.trim()) e.title = "Judul tugas wajib diisi.";
@@ -100,7 +96,6 @@ export default function AddTaskScreen() {
     setErrors(e);
     return Object.keys(e).length === 0;
   };
-
   const handleSave = () => {
     if (saving) return;
     if (!validate()) {

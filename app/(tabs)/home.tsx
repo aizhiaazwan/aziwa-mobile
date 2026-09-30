@@ -24,6 +24,7 @@ import {
   isSameDay,
   monthYearLabel,
 } from "@/utils/date";
+import { QuickLinks } from "@/components/home/QuickLinks";
 
 type Filter = "all" | "today" | "week" | "priority";
 
@@ -89,6 +90,10 @@ export default function HomeScreen() {
             <AppText style={styles.link}>{monthYearLabel(NOW)}</AppText>
           </View>
           <StatsRow stats={dummyStats} />
+        </FadeInView>
+        
+        <FadeInView delay={200}>
+          <QuickLinks />
         </FadeInView>
 
         <FadeInView delay={240}>
