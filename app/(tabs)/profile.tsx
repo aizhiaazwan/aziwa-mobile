@@ -12,6 +12,7 @@ import { useProfile } from "@/contexts/ProfileContext";
 import { useTasks } from "@/contexts/TasksContext";
 import { colors, fonts, radius, shadow } from "@/constants/theme";
 import type { IconName } from "@/data/dummy";
+import { useAuth } from "@/contexts/AuthContext";
 
 const settings: { key: string; icon: IconName; title: string; sub: string }[] =
   [
@@ -57,6 +58,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { profile } = useProfile();
   const { tasks } = useTasks();
+  const { signOut } = useAuth();
   const [confirmOut, setConfirmOut] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -84,9 +86,10 @@ export default function ProfileScreen() {
             message="Kamu akan kembali ke halaman login."
             confirmLabel="Keluar"
             onCancel={() => setConfirmOut(false)}
-            onConfirm={() => {
+                        onConfirm={async () => {
               setConfirmOut(false);
-              router.replace("/login");
+              await signOut();
+              router.replace('/login');
             }}
           />
         </>

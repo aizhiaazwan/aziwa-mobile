@@ -1,19 +1,28 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { useRouter } from "expo-router";
 import { AppText } from "@/components/ui/AppText";
 import { AziwaLogo } from "@/components/ui/AziwaLogo";
 import { FadeInView } from "@/components/ui/FadeInView";
+import { useAuth } from "@/contexts/AuthContext";
 import { colors } from "@/constants/theme";
 
 export default function Splash() {
   const router = useRouter();
+  const { status } = useAuth();
+  const [minDone, setMinDone] = useState(false);
 
+  // Logo tampil minimal 1,4 detik agar animasinya terlihat
   useEffect(() => {
-    // Nanti diganti: cek token tersimpan -> Home, jika tidak -> Login
-    const timer = setTimeout(() => router.replace("/login"), 1600);
-    return () => clearTimeout(timer);
-  }, [router]);
+    const t = setTimeout(() => setMinDone(true), 1400);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Sudah login -> Home. Belum -> Login.
+  useEffect(() => {
+    if (!minDone || status === "loading") return;
+    router.replace(status === "signedIn" ? "/home" : "/login");
+  }, [minDone, status, router]);
 
   return (
     <View

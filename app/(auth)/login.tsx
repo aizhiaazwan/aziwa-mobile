@@ -8,16 +8,47 @@ import { AziwaLogo } from "@/components/ui/AziwaLogo";
 import { FadeInView } from "@/components/ui/FadeInView";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
+import { useAuth } from "@/contexts/AuthContext";
+import { parseError } from "@/api/errors";
 import { colors, fonts, radius, shadow } from "@/constants/theme";
+
+type Errors = { email?: string; password?: string; form?: string };
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
+  const [errors, setErrors] = useState<Errors>({});
+  const [loading, setLoading] = useState(false);
 
-  // Sementara: langsung masuk. Di Phase 4 diganti panggilan API login.
-  const handleLogin = () => router.replace("/home");
+  const handleLogin = async () => {
+    if (loading) return;
+    const e: Errors = {};
+    if (!/^\S+@\S+\.\S+$/.test(email.trim()))
+      e.email = "Format email tidak valid.";
+    if (!password) e.password = "Kata sandi wajib diisi.";
+    setErrors(e);
+    if (Object.keys(e).length) return;
+
+    setLoading(true);
+    try {
+      await signIn(email.trim(), password);
+      router.replace("/home");
+    } catch (err) {
+      const p = parseError(err);
+      setErrors({
+        email: p.fields.email,
+        password: p.fields.password,
+        form: p.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showForm = !!errors.form && !errors.email && !errors.password;
 
   return (
     <Screen>
@@ -40,6 +71,15 @@ export default function LoginScreen() {
           </AppText>
         </View>
 
+        {showForm && (
+          <View style={styles.banner}>
+            <Feather name="alert-circle" size={18} color={colors.danger} />
+            <AppText style={{ flex: 1, fontSize: 14, color: colors.danger }}>
+              {errors.form}
+            </AppText>
+          </View>
+        )}
+
         <TextField
           label="Email Kampus / Mahasiswa"
           icon="at-sign"
@@ -48,6 +88,7 @@ export default function LoginScreen() {
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
+          error={errors.email}
         />
         <TextField
           label="Kata Sandi"
@@ -56,6 +97,8 @@ export default function LoginScreen() {
           placeholder="••••••••••••"
           value={password}
           onChangeText={setPassword}
+          error={errors.password}
+          onSubmitEditing={handleLogin}
         />
 
         <View style={styles.rowBetween}>
@@ -75,6 +118,7 @@ export default function LoginScreen() {
 
         <Button
           label="Masuk ke Aziwa"
+          loading={loading}
           onPress={handleLogin}
           iconRight={<Feather name="arrow-right" size={20} color="#fff" />}
         />
@@ -94,10 +138,15 @@ export default function LoginScreen() {
       </FadeInView>
 
       <FadeInView delay={300} style={styles.footer}>
-        <AppText color={colors.textMuted}>
-          Belum punya akun?{" "}
-            <AppText style={styles.link} onPress={() => router.push('/register')}>Daftar Sekarang</AppText>
-        </AppText>
+        <Pressable
+          onPress={() => router.push("/register")}
+          accessibilityRole="button"
+        >
+          <AppText color={colors.textMuted}>
+            Belum punya akun?{" "}
+            <AppText style={styles.link}>Daftar Sekarang</AppText>
+          </AppText>
+        </Pressable>
         <View style={styles.secure}>
           <Feather name="shield" size={16} color={colors.primary} />
           <AppText variant="caption" color={colors.text}>
@@ -142,6 +191,14 @@ const styles = StyleSheet.create({
     padding: 24,
     gap: 20,
     ...shadow.card,
+  },
+  banner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 12,
+    borderRadius: radius.md,
+    backgroundColor: colors.dangerSoft,
   },
   rowBetween: {
     flexDirection: "row",

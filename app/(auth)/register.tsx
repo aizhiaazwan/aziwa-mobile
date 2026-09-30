@@ -8,16 +8,17 @@ import { AziwaLogo } from "@/components/ui/AziwaLogo";
 import { FadeInView } from "@/components/ui/FadeInView";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
-import { useProfile } from "@/contexts/ProfileContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { parseError } from "@/api/errors";
 import { colors, fonts, radius, shadow } from "@/constants/theme";
 
 type Errors = Partial<
-  Record<"name" | "email" | "password" | "confirm", string>
+  Record<"name" | "email" | "password" | "confirm" | "form", string>
 >;
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const { updateProfile } = useProfile();
+  const { signUp } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,7 +26,8 @@ export default function RegisterScreen() {
   const [errors, setErrors] = useState<Errors>({});
   const [loading, setLoading] = useState(false);
 
-  const validate = () => {
+  const handleRegister = async () => {
+    if (loading) return;
     const e: Errors = {};
     if (!name.trim()) e.name = "Nama lengkap wajib diisi.";
     if (!/^\S+@\S+\.\S+$/.test(email.trim()))
@@ -33,18 +35,31 @@ export default function RegisterScreen() {
     if (password.length < 8) e.password = "Kata sandi minimal 8 karakter.";
     if (confirm !== password) e.confirm = "Konfirmasi kata sandi tidak sama.";
     setErrors(e);
-    return Object.keys(e).length === 0;
-  };
+    if (Object.keys(e).length) return;
 
-  // Sementara: langsung masuk. Di Phase 4 diganti POST /api/register.
-  const handleRegister = () => {
-    if (loading || !validate()) return;
     setLoading(true);
-    setTimeout(() => {
-      updateProfile({ name: name.trim(), email: email.trim() });
-      setLoading(false);
+    try {
+      await signUp({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+        confirm,
+      });
       router.replace("/home");
-    }, 700);
+    } catch (err) {
+      const p = parseError(err);
+      const f = p.fields;
+      const next: Errors = {
+        name: f.name,
+        email: f.email,
+        password: f.password,
+      };
+      // Jika server tidak menyebut kolom tertentu, tampilkan pesan umum
+      if (!f.name && !f.email && !f.password) next.form = p.message;
+      setErrors(next);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -63,6 +78,15 @@ export default function RegisterScreen() {
             Daftar untuk mulai mengatur tugas dan jadwal kuliahmu.
           </AppText>
         </View>
+
+        {errors.form && (
+          <View style={styles.banner}>
+            <Feather name="alert-circle" size={18} color={colors.danger} />
+            <AppText style={{ flex: 1, fontSize: 14, color: colors.danger }}>
+              {errors.form}
+            </AppText>
+          </View>
+        )}
 
         <TextField
           label="Nama Lengkap"
@@ -99,6 +123,7 @@ export default function RegisterScreen() {
           value={confirm}
           onChangeText={setConfirm}
           error={errors.confirm}
+          onSubmitEditing={handleRegister}
         />
 
         <Button
@@ -142,5 +167,13 @@ const styles = StyleSheet.create({
     padding: 24,
     gap: 18,
     ...shadow.card,
+  },
+  banner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 12,
+    borderRadius: radius.md,
+    backgroundColor: colors.dangerSoft,
   },
 });
