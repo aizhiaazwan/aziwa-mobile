@@ -4,9 +4,11 @@ import { AppText } from "@/components/ui/AppText";
 import { colors, fonts, radius } from "@/constants/theme";
 
 export const reminderChoices = [
-  { key: "1d", label: "1 hari sebelum" },
-  { key: "3h", label: "3 jam sebelum" },
-  { key: "1h", label: "1 jam sebelum" },
+  { key: '7d', label: '7 hari sebelum' },
+  { key: '3d', label: '3 hari sebelum' },
+  { key: '1d', label: '1 hari sebelum' },
+  { key: '3h', label: '3 jam sebelum' },
+  { key: '1h', label: '1 jam sebelum' },
 ] as const;
 
 export type ReminderKey = (typeof reminderChoices)[number]["key"];

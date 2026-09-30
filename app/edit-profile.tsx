@@ -10,13 +10,14 @@ import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 import { useProfile } from '@/contexts/ProfileContext';
 import { colors, fonts } from '@/constants/theme';
+import { useGoBack } from '@/utils/nav';
 
 type Errors = Partial<Record<'name' | 'email' | 'semester' | 'year', string>>;
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const { profile, updateProfile } = useProfile();
-
   const [name, setName] = useState(profile.name);
   const [email, setEmail] = useState(profile.email);
   const [university, setUniversity] = useState(profile.university);
@@ -63,7 +64,7 @@ export default function EditProfileScreen() {
       });
       setSaving(false);
       setToast('Profil diperbarui');
-      timer.current = setTimeout(() => router.back(), 900);
+      timer.current = setTimeout(() => goBack(), 900);
     }, 500);
   };
 
@@ -73,7 +74,7 @@ export default function EditProfileScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={10} accessibilityRole="button" accessibilityLabel="Kembali" style={styles.back}>
+        <Pressable onPress={() => goBack()} hitSlop={10} accessibilityRole="button" accessibilityLabel="Kembali" style={styles.back}>
           <Feather name="arrow-left" size={24} color={colors.text} />
         </Pressable>
         <AppText variant="heading" style={{ flex: 1 }}>Edit Profil</AppText>
@@ -118,7 +119,7 @@ export default function EditProfileScreen() {
                 onPress={handleSave}
                 iconLeft={<Feather name="save" size={20} color="#fff" />}
               />
-              <Pressable onPress={() => router.back()} accessibilityRole="button" style={styles.cancel}>
+              <Pressable onPress={() => goBack()} accessibilityRole="button" style={styles.cancel}>
                 <AppText style={{ fontFamily: fonts.semibold, fontSize: 16 }}>Batal</AppText>
               </Pressable>
             </View>

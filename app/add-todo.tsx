@@ -16,9 +16,11 @@ import { useTodos } from "@/contexts/TodosContext";
 import { colors, fonts, radius } from "@/constants/theme";
 import { NOW, Priority, Status } from "@/data/dummy";
 import { dateKey, formatKeyLong, keyToYMD, ymdToKey } from "@/utils/date";
+import { useGoBack } from "@/utils/nav";
 
 export default function AddTodoScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { todos, addTodo, updateTodo } = useTodos();
   const editing = id ? todos.find((t) => t.id === Number(id)) : undefined;
@@ -67,7 +69,7 @@ export default function AddTodoScreen() {
       else addTodo(data);
       setSaving(false);
       setToast(editing ? "Perubahan disimpan" : "To-do ditambahkan");
-      timer.current = setTimeout(() => router.back(), 900);
+      timer.current = setTimeout(() => goBack(), 900);
     }, 500);
   };
 
@@ -183,7 +185,7 @@ export default function AddTodoScreen() {
           iconLeft={<Feather name="save" size={20} color="#fff" />}
         />
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => goBack()}
           accessibilityRole="button"
           style={styles.cancel}
         >

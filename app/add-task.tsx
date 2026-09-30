@@ -28,6 +28,7 @@ import { useTasks } from "@/contexts/TasksContext";
 import { colors, fonts, radius, shadow } from "@/constants/theme";
 import { NOW, Priority, Status } from "@/data/dummy";
 import { useCourses } from "@/contexts/CoursesContext";
+import { useGoBack } from "@/utils/nav";
 
 const MONTHS = [
   "Jan",
@@ -54,6 +55,8 @@ const defaultDate: YMD = {
 };
 
 const reminderText: Record<ReminderKey, string> = {
+  "7d": "H-7 Reminder",
+  "3d": "H-3 Reminder",
   "1d": "H-1 Reminder",
   "3h": "H-3 Jam",
   "1h": "H-1 Jam",
@@ -61,6 +64,7 @@ const reminderText: Record<ReminderKey, string> = {
 
 export default function AddTaskScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const { addTask } = useTasks();
   const { courses } = useCourses();
   const [title, setTitle] = useState("");
@@ -118,7 +122,7 @@ export default function AddTaskScreen() {
       });
       setSaving(false);
       setToast("Tugas berhasil disimpan");
-      timer.current = setTimeout(() => router.back(), 900);
+      timer.current = setTimeout(() => goBack(), 900);
     }, 600);
   };
 
@@ -130,7 +134,7 @@ export default function AddTaskScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => goBack()}
           hitSlop={10}
           accessibilityRole="button"
           accessibilityLabel="Kembali"
@@ -324,7 +328,7 @@ export default function AddTaskScreen() {
                 iconLeft={<Feather name="save" size={20} color="#fff" />}
               />
               <Pressable
-                onPress={() => router.back()}
+                onPress={() => goBack()}
                 accessibilityRole="button"
                 style={styles.cancel}
               >

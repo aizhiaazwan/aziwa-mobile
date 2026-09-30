@@ -16,9 +16,12 @@ import {
 import { colors } from "@/constants/theme";
 import { AgendaProvider } from "@/contexts/AgendaContext";
 import { TodosProvider } from "@/contexts/TodosContext";
+import { NotesProvider } from '@/contexts/NotesContext';
+import { RemindersProvider } from '@/contexts/RemindersContext';
 
 SplashScreen.preventAutoHideAsync();
 
+export const unstable_settings = { initialRouteName: "index" };
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     PlusJakartaSans_400Regular,
@@ -34,53 +37,75 @@ export default function RootLayout() {
 
   if (!loaded && !error) return null;
 
-        return (
-          <ProfileProvider>
-            <CoursesProvider>
-              <TasksProvider>
-                <AgendaProvider>
-                  <TodosProvider>
-                    <StatusBar style="dark" />
-                    <Stack
-                      screenOptions={{
-                        headerShown: false,
-                        animation: "fade",
-                        contentStyle: { backgroundColor: colors.background },
-                      }}
-                    >
-                      <Stack.Screen
-                        name="add-task"
-                        options={{ animation: "slide_from_bottom" }}
-                      />
-                      <Stack.Screen
-                        name="add-course"
-                        options={{ animation: "slide_from_bottom" }}
-                      />
-                      <Stack.Screen
-                        name="edit-profile"
-                        options={{ animation: "slide_from_bottom" }}
-                      />
-                      <Stack.Screen
-                        name="add-agenda"
-                        options={{ animation: "slide_from_bottom" }}
-                      />
-                      <Stack.Screen
-                        name="add-todo"
-                        options={{ animation: "slide_from_bottom" }}
-                      />
-                      <Stack.Screen
-                        name="agenda"
-                        options={{ animation: "slide_from_right" }}
-                      />
-                      <Stack.Screen
-                        name="todos"
-                        options={{ animation: "slide_from_right" }}
-                      />
-                    </Stack>
-                  </TodosProvider>
-                </AgendaProvider>
-              </TasksProvider>
-            </CoursesProvider>
-          </ProfileProvider>
-        );
+          return (
+            <ProfileProvider>
+              <CoursesProvider>
+                <TasksProvider>
+                  <AgendaProvider>
+                    <TodosProvider>
+                      <NotesProvider>
+                        <RemindersProvider>
+                          <StatusBar style="dark" />
+                          <Stack
+                            screenOptions={{
+                              headerShown: false,
+                              animation: "fade",
+                              contentStyle: {
+                                backgroundColor: colors.background,
+                              },
+                            }}
+                          >
+                            <Stack.Screen
+                              name="add-task"
+                              options={{ animation: "slide_from_bottom" }}
+                            />
+                            <Stack.Screen
+                              name="add-course"
+                              options={{ animation: "slide_from_bottom" }}
+                            />
+                            <Stack.Screen
+                              name="edit-profile"
+                              options={{ animation: "slide_from_bottom" }}
+                            />
+                            <Stack.Screen
+                              name="add-agenda"
+                              options={{ animation: "slide_from_bottom" }}
+                            />
+                            <Stack.Screen
+                              name="add-todo"
+                              options={{ animation: "slide_from_bottom" }}
+                            />
+                            <Stack.Screen
+                              name="add-note"
+                              options={{ animation: "slide_from_bottom" }}
+                            />
+                            <Stack.Screen
+                              name="add-reminder"
+                              options={{ animation: "slide_from_bottom" }}
+                            />
+                            <Stack.Screen
+                              name="agenda"
+                              options={{ animation: "slide_from_right" }}
+                            />
+                            <Stack.Screen
+                              name="todos"
+                              options={{ animation: "slide_from_right" }}
+                            />
+                            <Stack.Screen
+                              name="notes"
+                              options={{ animation: "slide_from_right" }}
+                            />
+                            <Stack.Screen
+                              name="reminders"
+                              options={{ animation: "slide_from_right" }}
+                            />
+                          </Stack>
+                        </RemindersProvider>
+                      </NotesProvider>
+                    </TodosProvider>
+                  </AgendaProvider>
+                </TasksProvider>
+              </CoursesProvider>
+            </ProfileProvider>
+          );
 }

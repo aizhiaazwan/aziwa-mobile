@@ -22,6 +22,7 @@ import { Toast } from "@/components/ui/Toast";
 import { useCourses } from "@/contexts/CoursesContext";
 import { colors, fonts, radius, shadow } from "@/constants/theme";
 import { DAY_NAMES } from "@/utils/date";
+import { useGoBack } from '@/utils/nav';
 
 type Sks = "1" | "2" | "3" | "4";
 const STRIPES = [
@@ -44,6 +45,7 @@ const toMin = (t: HM) => t.hh * 60 + t.mm;
 
 export default function AddCourseScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { courses, addCourse, updateCourse } = useCourses();
   const editing = id ? courses.find((c) => c.id === Number(id)) : undefined;
@@ -129,7 +131,7 @@ export default function AddCourseScreen() {
       }
       setSaving(false);
       setToast(editing ? "Perubahan disimpan" : "Mata kuliah ditambahkan");
-      timer.current = setTimeout(() => router.back(), 900);
+      timer.current = setTimeout(() => goBack(), 900);
     }, 500);
   };
 
@@ -137,7 +139,7 @@ export default function AddCourseScreen() {
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.header}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => goBack()}
           hitSlop={10}
           accessibilityRole="button"
           accessibilityLabel="Kembali"
@@ -297,7 +299,7 @@ export default function AddCourseScreen() {
                 iconLeft={<Feather name="save" size={20} color="#fff" />}
               />
               <Pressable
-                onPress={() => router.back()}
+                onPress={() => goBack()}
                 accessibilityRole="button"
                 style={styles.cancel}
               >

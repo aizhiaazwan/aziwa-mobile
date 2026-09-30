@@ -64,9 +64,10 @@ export default function ProfileScreen() {
   const running = tasks.filter((t) => t.status === "in_progress").length;
   const pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
 
-  const onSetting = (key: string) => {
-    if (key === "account") router.push("/edit-profile");
-    else setToast("Fitur ini hadir di fase berikutnya");
+    const onSetting = (key: string) => {
+    if (key === 'account') router.push('/edit-profile');
+    else if (key === 'reminder') router.push('/reminders');
+    else setToast('Fitur ini hadir di fase berikutnya');
   };
 
   return (

@@ -8,9 +8,11 @@ import { FadeInView } from "@/components/ui/FadeInView";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
 import { colors, fonts, radius, shadow } from "@/constants/theme";
+import { useGoBack } from "@/utils/nav";
 
 export default function ForgotScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(false);
@@ -34,7 +36,7 @@ export default function ForgotScreen() {
   return (
     <Screen>
       <Pressable
-        onPress={() => router.back()}
+        onPress={() => goBack()}
         hitSlop={10}
         accessibilityRole="button"
         accessibilityLabel="Kembali"

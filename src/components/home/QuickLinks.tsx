@@ -8,8 +8,10 @@ import type { IconName } from "@/data/dummy";
 
 // Catatan dan Pengingat ditambahkan di 2F-2
 const links: { icon: IconName; label: string; route: string }[] = [
-  { icon: "calendar", label: "Agenda", route: "/agenda" },
-  { icon: "check-square", label: "To-Do", route: "/todos" },
+  { icon: 'calendar', label: 'Agenda', route: '/agenda' },
+  { icon: 'check-square', label: 'To-Do', route: '/todos' },
+  { icon: 'file-text', label: 'Catatan', route: '/notes' },
+  { icon: 'bell', label: 'Pengingat', route: '/reminders' },
 ];
 
 function Tile({ icon, label, route }: (typeof links)[number]) {
@@ -35,9 +37,7 @@ function Tile({ icon, label, route }: (typeof links)[number]) {
         <View style={styles.icon}>
           <Feather name={icon} size={22} color={colors.primary} />
         </View>
-        <AppText style={{ fontFamily: fonts.semibold, fontSize: 14 }}>
-          {label}
-        </AppText>
+        <AppText numberOfLines={1} style={{ fontFamily: fonts.semibold, fontSize: 13 }}>{label}</AppText>
       </Pressable>
     </Animated.View>
   );
@@ -61,7 +61,7 @@ export function QuickLinks() {
 const styles = StyleSheet.create({
   tile: {
     alignItems: "center",
-    gap: 8,
+    gap: 6,
     paddingVertical: 16,
     backgroundColor: colors.surface,
     borderRadius: radius.lg,

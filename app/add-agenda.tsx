@@ -28,11 +28,13 @@ import {
   toMinutes,
   ymdToKey,
 } from "@/utils/date";
+import { useGoBack } from "@/utils/nav";
 
 const categories = Object.keys(categoryMeta) as AgendaCategory[];
 
 export default function AddAgendaScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { agendas, addAgenda, updateAgenda } = useAgendas();
   const editing = id ? agendas.find((a) => a.id === Number(id)) : undefined;
@@ -92,7 +94,7 @@ export default function AddAgendaScreen() {
       else addAgenda(data);
       setSaving(false);
       setToast(editing ? "Perubahan disimpan" : "Agenda ditambahkan");
-      timer.current = setTimeout(() => router.back(), 900);
+      timer.current = setTimeout(() => goBack(), 900);
     }, 500);
   };
 
@@ -248,7 +250,7 @@ export default function AddAgendaScreen() {
           iconLeft={<Feather name="save" size={20} color="#fff" />}
         />
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => goBack()}
           accessibilityRole="button"
           style={styles.cancel}
         >
