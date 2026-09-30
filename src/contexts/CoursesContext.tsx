@@ -3,46 +3,148 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
-import { Course, dummyCourses } from "@/data/dummy";
+
+import type { Course } from "@/data/dummy";
+import {
+  createCourse,
+  deleteCourse,
+  fetchCourses,
+  updateCourse,
+} from "@/api/courses";
 
 export type NewCourse = Omit<Course, "id">;
 
 type CoursesContextValue = {
   courses: Course[];
-  addCourse: (input: NewCourse) => void;
-  updateCourse: (id: number, patch: Partial<NewCourse>) => void;
-  removeCourse: (id: number) => void;
+  loading: boolean;
+  error: string | null;
+  refreshCourses: () => Promise<void>;
+  addCourse: (input: NewCourse) => Promise<void>;
+  updateCourse: (id: number, patch: Partial<NewCourse>) => Promise<void>;
+  removeCourse: (id: number) => Promise<void>;
 };
 
 const CoursesContext = createContext<CoursesContextValue | null>(null);
 
-// Sementara data dummy di memori. Di Phase 4 diganti panggilan API.
 export function CoursesProvider({ children }: { children: ReactNode }) {
-  const [courses, setCourses] = useState<Course[]>(dummyCourses);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const addCourse = useCallback((input: NewCourse) => {
-    setCourses((prev) => {
-      const nextId = prev.reduce((m, c) => Math.max(m, c.id), 0) + 1;
-      return [...prev, { ...input, id: nextId }];
-    });
+  const refreshCourses = useCallback(async () => {
+    try {
+      setError(null);
+
+      const data = await fetchCourses();
+
+      setCourses(data);
+    } catch (err) {
+      console.error("Gagal mengambil courses:", err);
+      setError("Gagal mengambil data mata kuliah.");
+    }
   }, []);
 
-  const updateCourse = useCallback((id: number, patch: Partial<NewCourse>) => {
-    setCourses((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, ...patch } : c)),
-    );
+  useEffect(() => {
+    let mounted = true;
+
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const data = await fetchCourses();
+
+        if (mounted) {
+          setCourses(data);
+        }
+      } catch (err) {
+        console.error("Gagal mengambil courses:", err);
+
+        if (mounted) {
+          setError("Gagal mengambil data mata kuliah.");
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    load();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const removeCourse = useCallback((id: number) => {
-    setCourses((prev) => prev.filter((c) => c.id !== id));
+  const addCourse = useCallback(async (input: NewCourse) => {
+    try {
+      const created = await createCourse(input);
+
+      setCourses((prev) => [...prev, created]);
+    } catch (err) {
+      console.error("Gagal menambahkan course:", err);
+      throw err;
+    }
+  }, []);
+
+  const updateCourseData = useCallback(
+    async (id: number, patch: Partial<NewCourse>) => {
+      const current = courses.find((course) => course.id === id);
+
+      if (!current) return;
+
+      try {
+        const updated = await updateCourse(id, {
+          ...current,
+          ...patch,
+        });
+
+        setCourses((prev) =>
+          prev.map((course) => (course.id === id ? updated : course)),
+        );
+      } catch (err) {
+        console.error("Gagal mengubah course:", err);
+        throw err;
+      }
+    },
+    [courses],
+  );
+
+  const removeCourse = useCallback(async (id: number) => {
+    try {
+      await deleteCourse(id);
+
+      setCourses((prev) => prev.filter((course) => course.id !== id));
+    } catch (err) {
+      console.error("Gagal menghapus course:", err);
+      throw err;
+    }
   }, []);
 
   const value = useMemo(
-    () => ({ courses, addCourse, updateCourse, removeCourse }),
-    [courses, addCourse, updateCourse, removeCourse],
+    () => ({
+      courses,
+      loading,
+      error,
+      refreshCourses,
+      addCourse,
+      updateCourse: updateCourseData,
+      removeCourse,
+    }),
+    [
+      courses,
+      loading,
+      error,
+      refreshCourses,
+      addCourse,
+      updateCourseData,
+      removeCourse,
+    ],
   );
 
   return (
@@ -52,7 +154,10 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
 
 export function useCourses() {
   const ctx = useContext(CoursesContext);
-  if (!ctx)
+
+  if (!ctx) {
     throw new Error("useCourses harus dipakai di dalam CoursesProvider");
+  }
+
   return ctx;
 }

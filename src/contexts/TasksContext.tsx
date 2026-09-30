@@ -3,70 +3,188 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
-import { NOW, dummyTasks, Status, Task } from "@/data/dummy";
+
+import type { Status, Task } from "@/data/dummy";
+import { createTask, deleteTask, fetchTasks, updateTask } from "@/api/tasks";
 
 type TasksContextValue = {
   tasks: Task[];
-  toggleComplete: (id: number) => void;
-  setStatus: (id: number, status: Status) => void;
-  removeTask: (id: number) => void;
-  addTask: (input: NewTask) => void;
-  removeByCourse: (courseId: number) => void;
+  loading: boolean;
+  error: string | null;
+  refreshTasks: () => Promise<void>;
+  toggleComplete: (id: number) => Promise<void>;
+  setStatus: (id: number, status: Status) => Promise<void>;
+  removeTask: (id: number) => Promise<void>;
+  addTask: (input: NewTask) => Promise<void>;
+  removeByCourse: (courseId: number) => Promise<void>;
 };
 
 const TasksContext = createContext<TasksContextValue | null>(null);
-export type NewTask = Omit<Task, 'id'>;
 
-// Sementara data dummy di memori. Di Phase 4 isinya diganti panggilan API,
-// sedangkan layar tidak perlu diubah.
+export type NewTask = Omit<Task, "id">;
+
 export function TasksProvider({ children }: { children: ReactNode }) {
-  const [tasks, setTasks] = useState<Task[]>(dummyTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const toggleComplete = useCallback((id: number) => {
-    setTasks((prev) =>
-      prev.map((t): Task => {
-        if (t.id !== id) return t;
-        return t.status === "completed"
-          ? { ...t, status: "pending", completedAt: undefined }
-          : { ...t, status: "completed", completedAt: NOW.toISOString() };
-      }),
-    );
+  const refreshTasks = useCallback(async () => {
+    try {
+      setError(null);
+
+      const data = await fetchTasks();
+
+      setTasks(data);
+    } catch (err) {
+      console.error("Gagal mengambil tasks:", err);
+      setError("Gagal mengambil data tugas.");
+    }
   }, []);
 
-  const setStatus = useCallback((id: number, status: Status) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
-  }, []);
+  useEffect(() => {
+    let mounted = true;
 
-  const removeTask = useCallback((id: number) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
-  }, []);
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  const addTask = useCallback((input: NewTask) => {
-    const newTask: Task = {
-      ...input,
-      id: Date.now(), // Sementara menggunakan timestamp sebagai ID unik
+        const data = await fetchTasks();
+
+        if (mounted) {
+          setTasks(data);
+        }
+      } catch (err) {
+        console.error("Gagal mengambil tasks:", err);
+
+        if (mounted) {
+          setError("Gagal mengambil data tugas.");
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
     };
-    setTasks((prev) => [...prev, newTask]);
+
+    load();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-    const removeByCourse = useCallback((courseId: number) => {
-    setTasks((prev) => prev.filter((t) => t.courseId !== courseId));
+  const toggleComplete = useCallback(
+    async (id: number) => {
+      const current = tasks.find((task) => task.id === id);
+
+      if (!current) return;
+
+      const nextStatus: Status =
+        current.status === "completed" ? "pending" : "completed";
+
+      try {
+        const updated = await updateTask(id, {
+          status: nextStatus,
+        });
+
+        setTasks((prev) =>
+          prev.map((task) => (task.id === id ? updated : task)),
+        );
+      } catch (err) {
+        console.error("Gagal mengubah status task:", err);
+        throw err;
+      }
+    },
+    [tasks],
+  );
+
+  const setStatus = useCallback(async (id: number, status: Status) => {
+    try {
+      const updated = await updateTask(id, {
+        status,
+      });
+
+      setTasks((prev) => prev.map((task) => (task.id === id ? updated : task)));
+    } catch (err) {
+      console.error("Gagal mengubah status task:", err);
+      throw err;
+    }
   }, []);
 
-      const value = useMemo(
-        () => ({
-          tasks,
-          toggleComplete,
-          setStatus,
-          removeTask,
-          addTask,
-          removeByCourse,
-        }),
-        [tasks, toggleComplete, setStatus, removeTask, addTask, removeByCourse],
-      );
+  const removeTask = useCallback(async (id: number) => {
+    try {
+      await deleteTask(id);
+
+      setTasks((prev) => prev.filter((task) => task.id !== id));
+    } catch (err) {
+      console.error("Gagal menghapus task:", err);
+      throw err;
+    }
+  }, []);
+
+  const addTask = useCallback(async (input: NewTask) => {
+    try {
+      const created = await createTask({
+        title: input.title,
+        courseId: input.courseId,
+        deadline: input.deadline,
+        priority: input.priority,
+        status: input.status,
+        subtasks: input.subtasks,
+      });
+
+      setTasks((prev) => [...prev, created]);
+    } catch (err) {
+      console.error("Gagal menambahkan task:", err);
+      throw err;
+    }
+  }, []);
+
+  const removeByCourse = useCallback(
+    async (courseId: number) => {
+      const relatedTasks = tasks.filter((task) => task.courseId === courseId);
+
+      try {
+        await Promise.all(relatedTasks.map((task) => deleteTask(task.id)));
+
+        setTasks((prev) => prev.filter((task) => task.courseId !== courseId));
+      } catch (err) {
+        console.error("Gagal menghapus task berdasarkan course:", err);
+        throw err;
+      }
+    },
+    [tasks],
+  );
+
+  const value = useMemo(
+    () => ({
+      tasks,
+      loading,
+      error,
+      refreshTasks,
+      toggleComplete,
+      setStatus,
+      removeTask,
+      addTask,
+      removeByCourse,
+    }),
+    [
+      tasks,
+      loading,
+      error,
+      refreshTasks,
+      toggleComplete,
+      setStatus,
+      removeTask,
+      addTask,
+      removeByCourse,
+    ],
+  );
 
   return (
     <TasksContext.Provider value={value}>{children}</TasksContext.Provider>
@@ -75,6 +193,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
 
 export function useTasks() {
   const ctx = useContext(TasksContext);
-  if (!ctx) throw new Error("useTasks harus dipakai di dalam TasksProvider");
+
+  if (!ctx) {
+    throw new Error("useTasks harus dipakai di dalam TasksProvider");
+  }
+
   return ctx;
 }
