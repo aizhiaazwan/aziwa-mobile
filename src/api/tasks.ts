@@ -24,7 +24,6 @@ function mapTask(task: ApiTask): Task {
     deadline: task.deadline,
     priority: task.priority,
     status: task.status,
-
     subtasks:
       task.subtasks_total > 0
         ? {
@@ -32,7 +31,6 @@ function mapTask(task: ApiTask): Task {
             total: task.subtasks_total,
           }
         : undefined,
-
     completedAt: task.completed_at ?? undefined,
   };
 }
@@ -85,29 +83,26 @@ export async function createTask(input: {
 
 export async function updateTask(
   id: number,
-  patch: Partial<{
+  input: {
     title: string;
     courseId: number;
     deadline: string;
     priority: Priority;
     status: Status;
-    subtasks: {
+    subtasks?: {
       done: number;
       total: number;
     };
-  }>,
+  },
 ) {
   const response = await api.put(`/tasks/${id}`, {
-    ...(patch.title !== undefined && { title: patch.title }),
-    ...(patch.courseId !== undefined && { course_id: patch.courseId }),
-    ...(patch.deadline !== undefined && { deadline: patch.deadline }),
-    ...(patch.priority !== undefined && { priority: patch.priority }),
-    ...(patch.status !== undefined && { status: patch.status }),
-
-    ...(patch.subtasks !== undefined && {
-      subtasks_done: patch.subtasks.done,
-      subtasks_total: patch.subtasks.total,
-    }),
+    title: input.title,
+    course_id: input.courseId,
+    deadline: input.deadline,
+    priority: input.priority,
+    status: input.status,
+    subtasks_done: input.subtasks?.done ?? 0,
+    subtasks_total: input.subtasks?.total ?? 0,
   });
 
   return mapTask(response.data.data);

@@ -41,6 +41,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       setTasks(data);
     } catch (err) {
       console.error("Gagal mengambil tasks:", err);
+
       setError("Gagal mengambil data tugas.");
     }
   }, []);
@@ -89,7 +90,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
 
       try {
         const updated = await updateTask(id, {
+          title: current.title,
+          courseId: current.courseId,
+          deadline: current.deadline,
+          priority: current.priority,
           status: nextStatus,
+          subtasks: current.subtasks,
         });
 
         setTasks((prev) =>
@@ -97,24 +103,40 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         );
       } catch (err) {
         console.error("Gagal mengubah status task:", err);
+
         throw err;
       }
     },
     [tasks],
   );
 
-  const setStatus = useCallback(async (id: number, status: Status) => {
-    try {
-      const updated = await updateTask(id, {
-        status,
-      });
+  const setStatus = useCallback(
+    async (id: number, status: Status) => {
+      const current = tasks.find((task) => task.id === id);
 
-      setTasks((prev) => prev.map((task) => (task.id === id ? updated : task)));
-    } catch (err) {
-      console.error("Gagal mengubah status task:", err);
-      throw err;
-    }
-  }, []);
+      if (!current) return;
+
+      try {
+        const updated = await updateTask(id, {
+          title: current.title,
+          courseId: current.courseId,
+          deadline: current.deadline,
+          priority: current.priority,
+          status,
+          subtasks: current.subtasks,
+        });
+
+        setTasks((prev) =>
+          prev.map((task) => (task.id === id ? updated : task)),
+        );
+      } catch (err) {
+        console.error("Gagal mengubah status task:", err);
+
+        throw err;
+      }
+    },
+    [tasks],
+  );
 
   const removeTask = useCallback(async (id: number) => {
     try {
@@ -123,6 +145,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       setTasks((prev) => prev.filter((task) => task.id !== id));
     } catch (err) {
       console.error("Gagal menghapus task:", err);
+
       throw err;
     }
   }, []);
@@ -141,6 +164,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       setTasks((prev) => [...prev, created]);
     } catch (err) {
       console.error("Gagal menambahkan task:", err);
+
       throw err;
     }
   }, []);
@@ -155,6 +179,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         setTasks((prev) => prev.filter((task) => task.courseId !== courseId));
       } catch (err) {
         console.error("Gagal menghapus task berdasarkan course:", err);
+
         throw err;
       }
     },
