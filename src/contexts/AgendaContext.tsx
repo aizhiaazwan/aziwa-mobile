@@ -3,10 +3,12 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
 import type { IconName } from "@/data/dummy";
+import { fetchAgendas, createAgenda } from "@/api/agendas";
 
 export type AgendaCategory =
   | "kuliah"
@@ -125,6 +127,9 @@ const initial: Agenda[] = [
 
 type Value = {
   agendas: Agenda[];
+  loading: boolean;
+  error: string | null;
+  refreshAgendas: () => Promise<void>;
   addAgenda: (input: NewAgenda) => void;
   updateAgenda: (id: number, patch: Partial<NewAgenda>) => void;
   removeAgenda: (id: number) => void;
@@ -133,13 +138,66 @@ type Value = {
 const AgendaContext = createContext<Value | null>(null);
 
 export function AgendaProvider({ children }: { children: ReactNode }) {
-  const [agendas, setAgendas] = useState<Agenda[]>(initial);
+  const [agendas, setAgendas] = useState<Agenda[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const addAgenda = useCallback((input: NewAgenda) => {
-    setAgendas((prev) => [
-      ...prev,
-      { ...input, id: prev.reduce((m, a) => Math.max(m, a.id), 0) + 1 },
-    ]);
+  const refreshAgendas = useCallback(async () => {
+    useEffect(() => {
+      refreshAgendas();
+    }, [refreshAgendas]);
+    try {
+      setError(null);
+
+      const data = await fetchAgendas();
+      setAgendas(data);
+    } catch (err) {
+      console.error("Gagal mengambil agendas:", err);
+      setError("Gagal mengambil data agenda.");
+    }
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const data = await fetchAgendas();
+
+        if (mounted) {
+          setAgendas(data);
+        }
+      } catch (err) {
+        console.error("Gagal mengambil agendas:", err);
+
+        if (mounted) {
+          setError("Gagal mengambil data agenda.");
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    load();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const addAgenda = useCallback(async (input: NewAgenda) => {
+    try {
+      const created = await createAgenda(input);
+      setAgendas((prev) => [...prev, created]);
+    } catch (err) {
+      console.error("Gagal menambahkan agenda:", err);
+      throw err;
+    }
   }, []);
   const updateAgenda = useCallback((id: number, patch: Partial<NewAgenda>) => {
     setAgendas((prev) =>
@@ -151,8 +209,24 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ agendas, addAgenda, updateAgenda, removeAgenda }),
-    [agendas, addAgenda, updateAgenda, removeAgenda],
+    () => ({
+      agendas,
+      loading,
+      error,
+      refreshAgendas,
+      addAgenda,
+      updateAgenda,
+      removeAgenda,
+    }),
+    [
+      agendas,
+      loading,
+      error,
+      refreshAgendas,
+      addAgenda,
+      updateAgenda,
+      removeAgenda,
+    ],
   );
   return (
     <AgendaContext.Provider value={value}>{children}</AgendaContext.Provider>

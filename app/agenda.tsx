@@ -32,7 +32,10 @@ const sortAgendas = (list: Agenda[]) =>
 
 export default function AgendaScreen() {
   const router = useRouter();
-  const { agendas, removeAgenda } = useAgendas();
+
+  const { agendas, removeAgenda, loading, error, refreshAgendas } =
+    useAgendas();
+
   const todayKey = dateKey(NOW);
 
   const [mode, setMode] = useState<Mode>("day");
@@ -46,17 +49,28 @@ export default function AgendaScreen() {
     () => Array.from({ length: 14 }, (_, i) => addDaysKey(todayKey, i)),
     [todayKey],
   );
+
   const dayList = useMemo(
     () => sortAgendas(agendas.filter((a) => a.date === selected)),
     [agendas, selected],
   );
+
   const upcoming = useMemo(() => {
     const groups: { date: string; items: Agenda[] }[] = [];
+
     sortAgendas(agendas.filter((a) => a.date >= todayKey)).forEach((a) => {
       const last = groups[groups.length - 1];
-      if (last && last.date === a.date) last.items.push(a);
-      else groups.push({ date: a.date, items: [a] });
+
+      if (last && last.date === a.date) {
+        last.items.push(a);
+      } else {
+        groups.push({
+          date: a.date,
+          items: [a],
+        });
+      }
     });
+
     return groups;
   }, [agendas, todayKey]);
 
@@ -64,19 +78,39 @@ export default function AgendaScreen() {
   const deleteItem = agendas.find((a) => a.id === deleteId);
 
   const menuItems: SheetItem[] = [
-    { key: "edit", label: "Edit Agenda", icon: "edit-2" },
-    { key: "delete", label: "Hapus Agenda", icon: "trash-2", danger: true },
+    {
+      key: "edit",
+      label: "Edit Agenda",
+      icon: "edit-2",
+    },
+    {
+      key: "delete",
+      label: "Hapus Agenda",
+      icon: "trash-2",
+      danger: true,
+    },
   ];
 
   const edit = (id: number) =>
-    router.push({ pathname: "/add-agenda", params: { id: String(id) } });
+    router.push({
+      pathname: "/add-agenda",
+      params: { id: String(id) },
+    });
 
   const onMenuSelect = (key: string) => {
     const id = menuId;
+
     setMenuId(null);
+
     if (id === null) return;
-    if (key === "edit") edit(id);
-    if (key === "delete") setTimeout(() => setDeleteId(id), 250);
+
+    if (key === "edit") {
+      edit(id);
+    }
+
+    if (key === "delete") {
+      setTimeout(() => setDeleteId(id), 250);
+    }
   };
 
   const groupLabel = (date: string) =>
@@ -118,6 +152,7 @@ export default function AgendaScreen() {
       overlay={
         <>
           <Toast message={toast} onHide={() => setToast(null)} />
+
           <SheetMenu
             visible={menuId !== null}
             title={menuItem?.title}
@@ -125,6 +160,7 @@ export default function AgendaScreen() {
             onClose={() => setMenuId(null)}
             onSelect={onMenuSelect}
           />
+
           <ConfirmDialog
             visible={deleteId !== null}
             title="Hapus agenda ini?"
@@ -144,24 +180,57 @@ export default function AgendaScreen() {
             value={mode}
             onChange={setMode}
             options={[
-              { key: "day", label: "Per Hari" },
-              { key: "upcoming", label: "Mendatang" },
+              {
+                key: "day",
+                label: "Per Hari",
+              },
+              {
+                key: "upcoming",
+                label: "Mendatang",
+              },
             ]}
           />
         </FadeInView>
 
-        {mode === "day" ? (
+        {loading ? (
+          <View style={styles.empty}>
+            <Feather name="loader" size={32} color={colors.primaryMuted} />
+
+            <AppText color={colors.textMuted}>Memuat agenda...</AppText>
+          </View>
+        ) : error ? (
+          <View style={styles.empty}>
+            <Feather name="alert-circle" size={32} color={colors.danger} />
+
+            <AppText color={colors.textMuted}>{error}</AppText>
+
+            <Pressable onPress={refreshAgendas}>
+              <AppText
+                style={{
+                  fontFamily: fonts.semibold,
+                  color: colors.primary,
+                }}
+              >
+                Coba Lagi
+              </AppText>
+            </Pressable>
+          </View>
+        ) : mode === "day" ? (
           <>
             <FadeInView delay={60}>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 8, paddingVertical: 6 }}
+                contentContainerStyle={{
+                  gap: 8,
+                  paddingVertical: 6,
+                }}
               >
                 {days.map((k) => {
                   const p = keyParts(k);
                   const on = k === selected;
                   const has = agendas.some((a) => a.date === k);
+
                   return (
                     <Pressable
                       key={k}
@@ -181,6 +250,7 @@ export default function AgendaScreen() {
                       >
                         {DAY_NAMES[p.weekday].slice(0, 3)}
                       </AppText>
+
                       <AppText
                         style={{
                           fontFamily: fonts.bold,
@@ -191,6 +261,7 @@ export default function AgendaScreen() {
                       >
                         {p.d}
                       </AppText>
+
                       <View
                         style={[
                           styles.dot,
@@ -214,8 +285,10 @@ export default function AgendaScreen() {
                 <AppText style={styles.section}>
                   {formatKeyLong(selected)}
                 </AppText>
+
                 <AppText style={styles.count}>{dayList.length} agenda</AppText>
               </View>
+
               {dayList.length === 0 ? (
                 <View style={styles.empty}>
                   <Feather
@@ -223,9 +296,11 @@ export default function AgendaScreen() {
                     size={32}
                     color={colors.primaryMuted}
                   />
+
                   <AppText color={colors.textMuted}>
                     Belum ada agenda di hari ini.
                   </AppText>
+
                   <Pressable onPress={() => router.push("/add-agenda")}>
                     <AppText
                       style={{
@@ -251,6 +326,7 @@ export default function AgendaScreen() {
         ) : upcoming.length === 0 ? (
           <FadeInView delay={60} style={styles.empty}>
             <Feather name="calendar" size={32} color={colors.primaryMuted} />
+
             <AppText color={colors.textMuted}>
               Belum ada agenda mendatang.
             </AppText>
@@ -263,6 +339,7 @@ export default function AgendaScreen() {
               style={{ gap: 10 }}
             >
               <AppText style={styles.section}>{groupLabel(g.date)}</AppText>
+
               <CardGrid>{g.items.map(card)}</CardGrid>
             </FadeInView>
           ))
@@ -280,20 +357,46 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: radius.lg,
   },
+
   dayOn: {
     backgroundColor: colors.primary,
     ...shadow.primary,
     shadowOpacity: 0.18,
     elevation: 3,
   },
-  dayOff: { backgroundColor: colors.surface, ...shadow.card },
-  dot: { width: 6, height: 6, borderRadius: 3 },
+
+  dayOff: {
+    backgroundColor: colors.surface,
+    ...shadow.card,
+  },
+
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+
   between: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  section: { fontFamily: fonts.bold, fontSize: 17, lineHeight: 24 },
-  count: { fontFamily: fonts.semibold, fontSize: 13, color: colors.primary },
-  empty: { alignItems: "center", gap: 8, paddingVertical: 40 },
+
+  section: {
+    fontFamily: fonts.bold,
+    fontSize: 17,
+    lineHeight: 24,
+  },
+
+  count: {
+    fontFamily: fonts.semibold,
+    fontSize: 13,
+    color: colors.primary,
+  },
+
+  empty: {
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 40,
+  },
 });
