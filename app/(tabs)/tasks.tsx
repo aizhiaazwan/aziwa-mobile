@@ -34,31 +34,66 @@ const sortLabel: Record<Sort, string> = {
   priority: "Prioritas",
   newest: "Terbaru",
 };
-const priorityRank: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
+
+const priorityRank: Record<Priority, number> = {
+  high: 3,
+  medium: 2,
+  low: 1,
+};
 
 function buildTaskItems(task?: Task): SheetItem[] {
   const items: SheetItem[] = [];
+
   if (!task) return items;
-  if (task.status === "pending")
-    items.push({ key: "start", label: "Mulai Dikerjakan", icon: "play" });
+
+  if (task.status === "pending") {
+    items.push({
+      key: "start",
+      label: "Mulai Dikerjakan",
+      icon: "play",
+    });
+  }
+
   items.push(
     task.status === "completed"
-      ? { key: "toggle", label: "Buka Kembali", icon: "rotate-ccw" }
-      : { key: "toggle", label: "Tandai Selesai", icon: "check-circle" },
+      ? {
+          key: "toggle",
+          label: "Buka Kembali",
+          icon: "rotate-ccw",
+        }
+      : {
+          key: "toggle",
+          label: "Tandai Selesai",
+          icon: "check-circle",
+        },
   );
+
   items.push({
     key: "delete",
     label: "Hapus Tugas",
     icon: "trash-2",
     danger: true,
   });
+
   return items;
 }
 
 export default function TasksScreen() {
   const { courses } = useCourses();
-  const params = useLocalSearchParams<{ courseId?: string; t?: string }>();
-  const { tasks, toggleComplete, setStatus, removeTask } = useTasks();
+  const params = useLocalSearchParams<{
+    courseId?: string;
+    t?: string;
+  }>();
+
+  const {
+    tasks,
+    loading,
+    error,
+    refreshTasks,
+    toggleComplete,
+    setStatus,
+    removeTask,
+  } = useTasks();
 
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -72,12 +107,14 @@ export default function TasksScreen() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [removingId, setRemovingId] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
   // Menerima filter matkul dari layar Mata Kuliah
   useEffect(() => {
     if (params.courseId) {
       setCourseId(Number(params.courseId));
       setStatusFilter("all");
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.t]);
 
@@ -93,26 +130,47 @@ export default function TasksScreen() {
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
+
     const list = tasks.filter((t) => {
       const course = courses.find((c) => c.id === t.courseId);
-      if (statusFilter !== "all" && t.status !== statusFilter) return false;
-      if (courseId !== null && t.courseId !== courseId) return false;
-      if (priority !== "all" && t.priority !== priority) return false;
-      if (deadline === "today" && !isSameDay(t.deadline, NOW)) return false;
-      if (deadline === "week" && daysLeft(t.deadline, NOW) > 7) return false;
+
+      if (statusFilter !== "all" && t.status !== statusFilter) {
+        return false;
+      }
+
+      if (courseId !== null && t.courseId !== courseId) {
+        return false;
+      }
+
+      if (priority !== "all" && t.priority !== priority) {
+        return false;
+      }
+
+      if (deadline === "today" && !isSameDay(t.deadline, NOW)) {
+        return false;
+      }
+
+      if (deadline === "week" && daysLeft(t.deadline, NOW) > 7) {
+        return false;
+      }
+
       if (
         deadline === "overdue" &&
         !(new Date(t.deadline) < NOW && t.status !== "completed")
-      )
+      ) {
         return false;
+      }
+
       if (
         q &&
         !(
           t.title.toLowerCase().includes(q) ||
           course?.name.toLowerCase().includes(q)
         )
-      )
+      ) {
         return false;
+      }
+
       return true;
     });
 
@@ -120,17 +178,25 @@ export default function TasksScreen() {
       // Tugas selesai selalu di bawah
       const doneDiff =
         Number(a.status === "completed") - Number(b.status === "completed");
+
       if (doneDiff) return doneDiff;
+
       if (sort === "priority") {
         const d = priorityRank[b.priority] - priorityRank[a.priority];
+
         if (d) return d;
       }
-      if (sort === "newest") return b.id - a.id; // id terbesar = terbaru (sementara)
+
+      if (sort === "newest") {
+        return b.id - a.id;
+      }
+
       return +new Date(a.deadline) - +new Date(b.deadline);
     });
   }, [tasks, courses, query, statusFilter, courseId, priority, deadline, sort]);
 
   const filterActive = priority !== "all" || deadline !== "all";
+
   const anyFilter =
     filterActive || statusFilter !== "all" || courseId !== null || query !== "";
 
@@ -143,13 +209,16 @@ export default function TasksScreen() {
   };
 
   const activeTask = tasks.find((t) => t.id === activeId);
+
   const deleteTask = tasks.find((t) => t.id === deleteId);
+
   const courseName =
     courseId === null
       ? "Semua Matkul"
       : courses.find((c) => c.id === courseId)?.name;
 
   // ----- isi sheet -----
+
   const courseItems: SheetItem[] = [
     {
       key: "all",
@@ -164,6 +233,7 @@ export default function TasksScreen() {
       selected: courseId === c.id,
     })),
   ];
+
   const sortItems: SheetItem[] = [
     {
       key: "deadline",
@@ -184,6 +254,7 @@ export default function TasksScreen() {
       selected: sort === "newest",
     },
   ];
+
   const filterItems: SheetItem[] = [
     {
       key: "p:all",
@@ -244,9 +315,12 @@ export default function TasksScreen() {
   ];
 
   // ----- aksi -----
+
   const handleToggle = (id: number) => {
     const t = tasks.find((x) => x.id === id);
+
     toggleComplete(id);
+
     setToast(
       t?.status === "completed"
         ? "Tugas dibuka kembali"
@@ -261,8 +335,11 @@ export default function TasksScreen() {
 
   const onTaskAction = (key: string) => {
     const id = activeId;
+
     setSheet(null);
+
     if (id === null) return;
+
     if (key === "start") {
       setStatus(id, "in_progress");
       setToast("Tugas mulai dikerjakan");
@@ -276,9 +353,16 @@ export default function TasksScreen() {
 
   const onFilterSelect = (key: string) => {
     setSheet(null);
+
     const [group, value] = key.split(":");
-    if (group === "p") setPriority(value as Priority | "all");
-    if (group === "d") setDeadline(value as DeadlineFilter);
+
+    if (group === "p") {
+      setPriority(value as Priority | "all");
+    }
+
+    if (group === "d") {
+      setDeadline(value as DeadlineFilter);
+    }
   };
 
   const confirmDelete = () => {
@@ -292,20 +376,37 @@ export default function TasksScreen() {
     setToast("Tugas dihapus");
   };
 
-  const statusChips: { key: StatusFilter; label: string; dot?: string }[] = [
+  const statusChips: {
+    key: StatusFilter;
+    label: string;
+    dot?: string;
+  }[] = [
     { key: "all", label: "Semua" },
-    { key: "pending", label: "Pending", dot: colors.danger },
-    { key: "in_progress", label: "In Progress", dot: colors.accent },
-    { key: "completed", label: "Selesai", dot: colors.success },
+    {
+      key: "pending",
+      label: "Pending",
+      dot: colors.danger,
+    },
+    {
+      key: "in_progress",
+      label: "In Progress",
+      dot: colors.accent,
+    },
+    {
+      key: "completed",
+      label: "Selesai",
+      dot: colors.success,
+    },
   ];
 
   return (
     <Screen
       header={<AppHeader title="Daftar Tugas" />}
-      fab // onFabPress diisi di 2D (halaman Tambah Tugas)
+      fab
       overlay={
         <>
           <Toast message={toast} onHide={() => setToast(null)} />
+
           <SheetMenu
             visible={sheet === "course"}
             title="Pilih Mata Kuliah"
@@ -316,6 +417,7 @@ export default function TasksScreen() {
               setSheet(null);
             }}
           />
+
           <SheetMenu
             visible={sheet === "sort"}
             title="Urutkan"
@@ -326,6 +428,7 @@ export default function TasksScreen() {
               setSheet(null);
             }}
           />
+
           <SheetMenu
             visible={sheet === "filter"}
             title="Filter Tugas"
@@ -333,6 +436,7 @@ export default function TasksScreen() {
             onClose={() => setSheet(null)}
             onSelect={onFilterSelect}
           />
+
           <SheetMenu
             visible={sheet === "task"}
             title={activeTask?.title}
@@ -340,10 +444,13 @@ export default function TasksScreen() {
             onClose={() => setSheet(null)}
             onSelect={onTaskAction}
           />
+
           <ConfirmDialog
             visible={deleteId !== null}
             title="Hapus tugas ini?"
-            message={`"${deleteTask?.title ?? ""}" akan dihapus dan tidak bisa dikembalikan.`}
+            message={`"${
+              deleteTask?.title ?? ""
+            }" akan dihapus dan tidak bisa dikembalikan.`}
             onCancel={() => setDeleteId(null)}
             onConfirm={confirmDelete}
           />
@@ -355,6 +462,7 @@ export default function TasksScreen() {
         <FadeInView style={styles.searchRow}>
           <View style={styles.searchBox}>
             <Feather name="search" size={20} color={colors.textMuted} />
+
             <TextInput
               value={query}
               onChangeText={setQuery}
@@ -363,6 +471,7 @@ export default function TasksScreen() {
               style={styles.searchInput}
               returnKeyType="search"
             />
+
             {query.length > 0 && (
               <Pressable
                 onPress={() => setQuery("")}
@@ -373,6 +482,7 @@ export default function TasksScreen() {
               </Pressable>
             )}
           </View>
+
           <Pressable
             onPress={() => setSheet("filter")}
             accessibilityRole="button"
@@ -380,6 +490,7 @@ export default function TasksScreen() {
             style={styles.filterBtn}
           >
             <Feather name="sliders" size={20} color={colors.text} />
+
             {filterActive && <View style={styles.filterDot} />}
           </Pressable>
         </FadeInView>
@@ -389,10 +500,14 @@ export default function TasksScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8, paddingVertical: 6 }}
+            contentContainerStyle={{
+              gap: 8,
+              paddingVertical: 6,
+            }}
           >
             {statusChips.map((c) => {
               const selected = statusFilter === c.key;
+
               const icon = c.dot ? (
                 <View
                   style={{
@@ -425,6 +540,7 @@ export default function TasksScreen() {
                   </AppText>
                 </View>
               );
+
               return (
                 <Chip
                   key={c.key}
@@ -447,18 +563,25 @@ export default function TasksScreen() {
           >
             <AppText
               numberOfLines={1}
-              style={{ flex: 1, fontFamily: fonts.medium, fontSize: 14 }}
+              style={{
+                flex: 1,
+                fontFamily: fonts.medium,
+                fontSize: 14,
+              }}
             >
               {courseName}
             </AppText>
+
             <Feather name="chevron-down" size={18} color={colors.text} />
           </Pressable>
+
           <Pressable
             onPress={() => setSheet("sort")}
             accessibilityRole="button"
             style={styles.sortBtn}
           >
             <Feather name="clock" size={16} color={colors.primary} />
+
             <AppText
               style={{
                 fontFamily: fonts.semibold,
@@ -469,6 +592,7 @@ export default function TasksScreen() {
             >
               {sortLabel[sort]}
             </AppText>
+
             <Feather name="chevron-down" size={16} color={colors.primary} />
           </Pressable>
         </FadeInView>
@@ -482,6 +606,7 @@ export default function TasksScreen() {
             suffix="tugas"
             color={colors.primary}
           />
+
           <StatBox
             label="In Progress"
             icon="clock"
@@ -489,6 +614,7 @@ export default function TasksScreen() {
             suffix="aktif"
             color="#E0A100"
           />
+
           <StatBox
             label="Selesai"
             icon="check-circle"
@@ -499,18 +625,44 @@ export default function TasksScreen() {
         </FadeInView>
 
         {/* Daftar */}
-        {visible.length === 0 ? (
+        {loading ? (
+          <FadeInView delay={240} style={styles.empty}>
+            <AppText color={colors.textMuted}>Memuat tugas...</AppText>
+          </FadeInView>
+        ) : error ? (
+          <FadeInView delay={240} style={styles.empty}>
+            <Feather name="alert-circle" size={32} color={colors.danger} />
+
+            <AppText color={colors.textMuted}>{error}</AppText>
+
+            <Pressable onPress={refreshTasks}>
+              <AppText
+                style={{
+                  fontFamily: fonts.semibold,
+                  color: colors.primary,
+                }}
+              >
+                Coba Lagi
+              </AppText>
+            </Pressable>
+          </FadeInView>
+        ) : visible.length === 0 ? (
           <FadeInView delay={240} style={styles.empty}>
             <Feather name="inbox" size={32} color={colors.primaryMuted} />
+
             <AppText color={colors.textMuted}>
               {tasks.length === 0
                 ? "Belum ada tugas."
                 : "Tidak ada tugas yang cocok."}
             </AppText>
+
             {anyFilter && tasks.length > 0 && (
               <Pressable onPress={resetAll}>
                 <AppText
-                  style={{ fontFamily: fonts.semibold, color: colors.primary }}
+                  style={{
+                    fontFamily: fonts.semibold,
+                    color: colors.primary,
+                  }}
                 >
                   Reset filter
                 </AppText>
@@ -519,19 +671,19 @@ export default function TasksScreen() {
           </FadeInView>
         ) : (
           <CardGrid>
-           {visible.map((t, i) => (
-            <FadeInView key={t.id} delay={Math.min(i, 6) * 60 + 240}>
-              <TaskListCard
-                task={t}
-                course={courses.find((c) => c.id === t.courseId)!}
-                urgent={daysLeft(t.deadline, NOW) <= 1}
-                removing={removingId === t.id}
-                onToggle={handleToggle}
-                onMore={openMore}
-                onRemoved={handleRemoved}
-              />
-            </FadeInView>
-          ))}
+            {visible.map((t, i) => (
+              <FadeInView key={t.id} delay={Math.min(i, 6) * 60 + 240}>
+                <TaskListCard
+                  task={t}
+                  course={courses.find((c) => c.id === t.courseId)!}
+                  urgent={daysLeft(t.deadline, NOW) <= 1}
+                  removing={removingId === t.id}
+                  onToggle={handleToggle}
+                  onMore={openMore}
+                  onRemoved={handleRemoved}
+                />
+              </FadeInView>
+            ))}
           </CardGrid>
         )}
       </View>
@@ -556,13 +708,25 @@ function StatBox({
     <View style={styles.statBox}>
       <View style={styles.statHead}>
         <AppText
-          style={{ fontFamily: fonts.medium, fontSize: 13, color: colors.text }}
+          style={{
+            fontFamily: fonts.medium,
+            fontSize: 13,
+            color: colors.text,
+          }}
         >
           {label}
         </AppText>
+
         <Feather name={icon} size={16} color={color} />
       </View>
-      <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 4 }}>
+
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-end",
+          gap: 4,
+        }}
+      >
         <AppText
           style={{
             fontFamily: fonts.bold,
@@ -573,8 +737,13 @@ function StatBox({
         >
           {value}
         </AppText>
+
         <AppText
-          style={{ fontSize: 13, color: colors.textMuted, marginBottom: 5 }}
+          style={{
+            fontSize: 13,
+            color: colors.textMuted,
+            marginBottom: 5,
+          }}
         >
           {suffix}
         </AppText>
@@ -584,7 +753,11 @@ function StatBox({
 }
 
 const styles = StyleSheet.create({
-  searchRow: { flexDirection: "row", gap: 12 },
+  searchRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+
   searchBox: {
     flex: 1,
     height: 52,
@@ -596,6 +769,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     ...shadow.card,
   },
+
   searchInput: {
     flex: 1,
     fontFamily: fonts.regular,
@@ -604,6 +778,7 @@ const styles = StyleSheet.create({
     height: "100%",
     outlineStyle: "none",
   } as any,
+
   filterBtn: {
     width: 52,
     height: 52,
@@ -613,6 +788,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     ...shadow.card,
   },
+
   filterDot: {
     position: "absolute",
     top: 12,
@@ -622,6 +798,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: colors.primary,
   },
+
   countBubble: {
     minWidth: 20,
     height: 20,
@@ -630,7 +807,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  pickRow: { flexDirection: "row", gap: 8, alignItems: "center" },
+
+  pickRow: {
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
+  },
+
   dropdown: {
     flex: 1,
     height: 44,
@@ -642,6 +825,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     ...shadow.card,
   },
+
   sortBtn: {
     height: 44,
     flexDirection: "row",
@@ -651,7 +835,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primarySoft,
     borderRadius: radius.pill,
   },
-  statsRow: { flexDirection: "row", gap: 8 },
+
+  statsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+
   statBox: {
     flex: 1,
     gap: 6,
@@ -660,10 +849,16 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     ...shadow.card,
   },
+
   statHead: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  empty: { alignItems: "center", gap: 8, paddingVertical: 40 },
+
+  empty: {
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 40,
+  },
 });

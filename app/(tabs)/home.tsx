@@ -33,8 +33,20 @@ type Filter = "all" | "today" | "week" | "priority";
 export default function HomeScreen() {
   const router = useRouter();
   const { isDesktop } = useBreakpoint();
-  const { tasks, toggleComplete } = useTasks();
-  const { courses } = useCourses();
+  const {
+    tasks,
+    loading: tasksLoading,
+    error: tasksError,
+    refreshTasks,
+    toggleComplete,
+  } = useTasks();
+
+  const {
+    courses,
+    loading: coursesLoading,
+    error: coursesError,
+    refreshCourses,
+  } = useCourses();
   const { profile } = useProfile();
   const [filter, setFilter] = useState<Filter>("all");
 
@@ -151,7 +163,33 @@ export default function HomeScreen() {
             </Pressable>
           </View>
 
-          {visible.length === 0 ? (
+          {tasksLoading || coursesLoading ? (
+            <View style={styles.empty}>
+              <AppText color={colors.textMuted}>Memuat tugas...</AppText>
+            </View>
+          ) : tasksError || coursesError ? (
+            <View style={styles.empty}>
+              <Feather name="alert-circle" size={28} color={colors.danger} />
+              <AppText color={colors.textMuted}>
+                {tasksError ?? coursesError}
+              </AppText>
+
+              <Pressable
+                onPress={async () => {
+                  await Promise.all([refreshTasks(), refreshCourses()]);
+                }}
+              >
+                <AppText
+                  style={{
+                    fontFamily: fonts.semibold,
+                    color: colors.primary,
+                  }}
+                >
+                  Coba Lagi
+                </AppText>
+              </Pressable>
+            </View>
+          ) : visible.length === 0 ? (
             <View style={styles.empty}>
               <Feather
                 name="check-circle"

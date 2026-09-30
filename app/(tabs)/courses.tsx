@@ -24,7 +24,7 @@ type Filter = "all" | "urgent" | "today";
 
 export default function CoursesScreen() {
   const router = useRouter();
-  const { courses, removeCourse } = useCourses();
+ const { courses, loading, error, refreshCourses, removeCourse } = useCourses();
   const { tasks, removeByCourse } = useTasks();
   const { profile } = useProfile();
 
@@ -254,18 +254,43 @@ export default function CoursesScreen() {
             <Chip
               label={`Tugas Mendesak (${urgentCount})`}
               selected={filter === "urgent"}
-              onPress={() => { setFilter("urgent"); setQuery(''); }}
+              onPress={() => {
+                setFilter("urgent");
+                setQuery("");
+              }}
             />
             <Chip
               label={`Jadwal Hari Ini (${todayCount})`}
               selected={filter === "today"}
-              onPress={() => { setFilter("today"); setQuery(''); }}
+              onPress={() => {
+                setFilter("today");
+                setQuery("");
+              }}
             />
           </ScrollView>
         </FadeInView>
 
         {/* Daftar */}
-        {visible.length === 0 ? (
+        {loading ? (
+          <FadeInView delay={200} style={styles.empty}>
+            <AppText color={colors.textMuted}>Memuat mata kuliah...</AppText>
+          </FadeInView>
+        ) : error ? (
+          <FadeInView delay={200} style={styles.empty}>
+            <Feather name="alert-circle" size={32} color={colors.danger} />
+            <AppText color={colors.textMuted}>{error}</AppText>
+            <Pressable onPress={refreshCourses}>
+              <AppText
+                style={{
+                  fontFamily: fonts.semibold,
+                  color: colors.primary,
+                }}
+              >
+                Coba Lagi
+              </AppText>
+            </Pressable>
+          </FadeInView>
+        ) : visible.length === 0 ? (
           <FadeInView delay={200} style={styles.empty}>
             <Feather name="book-open" size={32} color={colors.primaryMuted} />
             <AppText color={colors.textMuted}>
@@ -276,7 +301,10 @@ export default function CoursesScreen() {
             {courses.length > 0 && filter !== "all" && (
               <Pressable onPress={() => setFilter("all")}>
                 <AppText
-                  style={{ fontFamily: fonts.semibold, color: colors.primary }}
+                  style={{
+                    fontFamily: fonts.semibold,
+                    color: colors.primary,
+                  }}
                 >
                   Tampilkan semua
                 </AppText>
@@ -299,7 +327,6 @@ export default function CoursesScreen() {
             ))}
           </CardGrid>
         )}
-
         {/* Tips */}
         {tipCourse && (
           <FadeInView delay={480}>
